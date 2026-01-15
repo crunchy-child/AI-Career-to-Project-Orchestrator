@@ -81,15 +81,15 @@
 #### B. Gap & Match
 4) **SkillGapNode**
 - 역할: JD 요구 스킬과 Resume 보유 스킬 비교
-- 출력: missing_skills, partial_matches, strong_matches
+- 출력: GapSummary(JSON): missing_skills, partial_matches, strong_matches, validated_missing_skills
 
-5) **MatchScoringNode**
-- 역할: 규칙 기반 점수(커버리지) + LLM 보정(중요도 가중)
-- 출력: score(0-100), rationale
-
-6) **GapValidatorNode**
+5) **GapValidatorNode**
 - 역할: missing_skills가 실제 JD에 존재하는지, 중복/허상 제거
-- 출력: validated_missing_skills
+- 출력: GapSummary(JSON): missing_skills, partial_matches, strong_matches, validated_missing_skills
+
+6) **MatchScoringNode**
+- 역할: 규칙 기반 점수(커버리지) + LLM 보정(중요도 가중)
+- 출력: GapSummary(JSON): missing_skills, partial_matches, strong_matches, validated_missing_skills
 
 #### C. Resume Improvement
 7) **BulletRewriteNode**
