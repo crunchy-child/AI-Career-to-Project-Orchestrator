@@ -76,7 +76,7 @@
 
 3) **NormalizeKeywordsNode**
 - 역할: 동의어/표기 통일(예: CI/CD vs cicd, PostgreSQL vs PostgresSQL)
-- 출력: NormalizedProfile
+- 출력: ResumeProfile(JSON)
 
 #### B. Gap & Match
 4) **SkillGapNode**
