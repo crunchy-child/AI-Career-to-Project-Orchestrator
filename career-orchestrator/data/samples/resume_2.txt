@@ -1,0 +1,51 @@
+Uichan Lee
+Berkeley, CA | Open to relocation | (626) 394-4093 | rickylee7185@gmail.com | UC Berkeley Stats ’27 | LinkedIn
+
+
+EDUCATION
+ 
+University of California, Berkeley - College of Computing, Data Science & Society         Berkeley, CA
+Bachelor of Arts, Statistics                                        (Expected) May 2027
+Cumulative GPA: 4.00 / 4.00 
+
+
+Pasadena City College        Pasadena, CA
+Coursework in Mathematics, Statistics, and Computer Science                                         Feb 2024 – June 2025
+Cumulative GPA: 4.00 / 4.00 
+
+
+TECHNICAL SKILLS
+  
+Programming & Data: Python (Pandas, NumPy, Scikit-learn, Seaborn, Matplotlib, Scipy), SQL, Java, C++
+Data Science & ML: Linear/Logistic Regression, K-means Clustering, Data Imputation, EDA, Regex, Data Visualization
+Tools: Git/GitHub, Tableau, Excel, Jupyter Notebook, LaTeX
+
+                 
+EXPERIENCE / RESEARCH
+ 
+UC Berkeley Data Discovery x Ten Strands                                                                                           Berkeley, CA
+Student Researcher                                                                                      Sep – Dec 2025
+* Quantified the impact of dedicated staffing on environmental literacy, finding that districts with Whole-System Coordinators are 59.5% more likely to achieve superior performance scores.
+* Analyzed correlation between political affiliation and environmental investments; discovered that Democratic-leaning districts prioritize community roles, whereas some Republican districts offer higher site-level compensation. 
+* Enhanced dataset integrity for 938 CA school districts by imputing missing political data via 2020 voting shares, establishing a robust baseline for statewide longitudinal analysis.
+
+
+Atom Tech Solutions                                                                                                                              Berkeley, CA (remote)
+Software Engineer Intern                                                                                     Mar – Aug 2024 
+* Architected and developed a full-stack restaurant review application using JavaScript and MongoDB within a team.
+* Contributed to Agile development sprints and resolved critical bugs to improve system stability during production. 
+
+PROJECTS
+
+
+Spam Mail Classifier                                                                                     Oct 2025 - Nov 2025
+   * Developed a Logistic Regression classifier for email categorization, achieving 90%+ accuracy on unseen test datasets.
+   * Engineered features using Regular Expressions (Regex) for text-pattern extraction and optimized classification thresholds through cross-validation (F-1 score/Precision/Recall).
+
+Spam Mail Classifier                                                                                     Oct 2025 - Nov 2025
+      * Developed a Logistic Regression classifier for email categorization, achieving 90%+ accuracy on unseen test datasets.
+      * Engineered features using Regular Expressions (Regex) for text-pattern extraction and optimized classification thresholds through cross-validation (F-1 score/Precision/Recall).
+
+Cook County Housing Price Predictor                                                                                        Oct 2025
+         * Built and end-to-end Linear Regression pipeline using Scikit-Learn to predict residential property values with high precision.
+         * Performed extensive EDA on 500k+ records, implementing data cleaning strategies to address outliers, missing values, and skewed distributions.

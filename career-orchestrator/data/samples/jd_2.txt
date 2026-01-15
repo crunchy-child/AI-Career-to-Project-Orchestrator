@@ -1,0 +1,36 @@
+Research Intern, PhD, Summer 2026
+corporate_fare
+Google
+place
+Mountain View, CA, USA
+; Atlanta, GA, USA
+; +27 more
+bar_chart
+Intern & Apprentice
+
+Minimum qualifications:
+Currently enrolled in a PhD degree in Computer Science, Linguistics, Statistics, Biostatistics, Applied Mathematics, Operations Research, Economics, Natural Sciences, or related technical field.
+Experience in one area of computer science (e.g., Natural Language Understanding, Computer Vision, Machine Learning, Deep Learning, Algorithmic Foundations of Optimization, Quantum Information Science, Data Science, Software Engineering, or similar areas).
+
+Preferred qualifications:
+Currently attending a degree program in the US and available to work full time for 12 weeks outside of university term time.
+Penultimate academic year or returning to a degree program after completion of the internship.
+Experience as a researcher, including internships, full-time, or at a lab.
+Experience contributing research communities or efforts, including publishing papers in major conferences or journals.
+Experience with one or more general purpose programming languages (e.g., Python, Java, JavaScript, C/C++, etc.).
+About the job
+Join us for a full-time, 12-14 week paid internship that offers personal and professional development, an executive speaker series, and community-building. Research happens across Google everyday, in many different teams. Our research has already impacted user-facing services across Google, including Search, Maps, and Google Now, and is central to the success of Google Cloud and our planet-scale computing, storage, and networking infrastructure.
+
+Research Interns work closely with Engineers to discover, invent, and build at the largest scale. From creating experiments and prototyping implementations to designing architectures, Research Interns work on challenges in artificial intelligence, machine perception, data mining, machine learning, natural language understanding, privacy, computer architecture, networking, operating systems, storage and data management, and more.
+
+Google Research addresses challenges that define the technology of today and tomorrow. From conducting fundamental research to influencing product development, our research teams have the opportunity to impact technology used by billions of people every day.
+
+Our teams aspire to make discoveries that impact everyone, and core to our approach is sharing our research and tools to fuel progress in the field -- we publish regularly in academic journals, release projects as open source, and apply research to Google products.
+
+The US base salary range for this full-time position is $113,000-$150,000. Our salary ranges are determined by role, level, and location. Within the range, individual pay is determined by work location and additional factors, including job-related skills, experience, and relevant education or training. Your recruiter can share more about the specific salary range for your preferred location during the hiring process.
+
+Please note that the compensation details listed in US role postings reflect the base salary only, and do not include bonus, equity, or benefits. Learn more about benefits at Google.
+
+Responsibilities
+Develop and execute a research agenda.
+Contribute to a productive and innovative team, including working with peers, managers, and partner teams.
