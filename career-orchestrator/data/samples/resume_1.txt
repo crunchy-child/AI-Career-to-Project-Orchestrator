@@ -1,0 +1,62 @@
+﻿Minkyu Kim
+Seoul (Willing to Relocate) | kangaroo0305@gmail.com | (+82) 10-4732-9790 | Linkedin | Github
+EDUCATION
+________________
+
+
+University of California, Berkeley                                                        June 2023 - Present
+Bachelor of Arts, Data Science (Expected 2027)                                                Expected May 2027
+GPA: 3.94 / 4.0
+
+
+Green River Community College                                                                Aug 2020 - May 2023
+Associate in Science, Computer & Electrical Engineering
+GPA: 3.96 / 4.0
+
+
+PROJECTS
+________________
+
+
+Agent-to-Agent (A2A) Multi-agent System                                                Dec 2025 - Jan 2026
+* Designed a distributed multi-agent AI system enabling autonomous agent discovery and collaboration using a standardized Agent-to-Agent (A2A) communication protocol. The project focused on replacing monolithic LLM pipelines with modular, service-based AI agents.
+* Implemented a LangGraph-based reasoning agent and exposed it as a FastAPI service, allowing agents to communicate over HTTP. Introduced Agent Card JSON to support standardized agent discovery, metadata exchange, and protocol compatibility.
+* Enabled agent-to-agent messaging via JSON-RPC 2.0, allowing structured and machine-readable communication between independent agents. Integrated remote sub-agents and built a user-facing orchestration agent to dynamically delegate tasks and aggregate responses.
+* Applied a microservices-style architecture to AI agents, emphasizing modularity, loose coupling, and scalability. Designed the system to be extensible for capability-based routing, automated agent selection, and future distributed AI systems.
+Seoul Bike Demand Prediction                                                                 June 2025
+* Built and evaluated machine learning models (Linear Regression, Random Forest, XGBoost) to predict hourly bike rental demand using weather and temporal features.
+* Conducted extensive EDA and feature engineering with Pandas and NumPy; visualized demand patterns using Matplotlib and Seaborn.
+* Tuned XGBoost with cross-validation and hyperparameter optimization, achieving MAE 962.43 and RMSE 1610.30.
+* Applied SHAP for model interpretability, identifying key drivers such as temperature, rainfall, and rush-hour effects.
+* Translated model insights into actionable recommendations for demand-aware resource allocation.
+
+
+EXPERIENCE
+________________
+
+
+Data8, University of California, Berkeley Academic Intern                                        August 2023 - December 2023
+* Guided 30+ students per lab in Python-based data science labs covering EDA, sampling, inference, and linear regression using the datascience module and Jupyter.
+* Improved conceptual understanding by creating visual slide decks and delivering real-time explanations on topics like confidence intervals and causation vs. correlation.
+* Supported autograding workflows using Otter-Grader and helped debug student notebooks in a cloud-hosted JupyterHub environment.
+* Proposed new teaching strategies that enhanced student engagement and increased lab efficiency for instructors.
+Green River College Math Tutor                                                                September 2021 - June 2023
+* Provided academic support in arithmetic, algebra, calculus, linear algebra, differential equations, discrete math, and probability.
+* Helped students at all levels by adapting explanations to their learning needs, building both foundational skills and advanced problem-solving strategies.
+* Improved communication skills by explaining complex math concepts in English as an international student.
+* Worked ~11 hours/week, enhancing my own understanding while supporting peers' academic growth.
+
+
+TECHNICAL SKILLS
+________________
+
+
+Languages                                Python, Java, C++, SQL
+Libraries & Frameworks                        Pandas, NumPy, Matplotlib, Seaborn, Scikit-learn, XGBoost, SHAP, FastAPI, JSON
+LangGraph, Google ADK
+Tools                                        Git, Jupyter Notebook, VS Code, IntelliJ
+Platforms                                Github, macOS, Windows
+Skills                                        Data Analysis, Data Science, Data Engineering, Feature Engineering, 
+Machine Learning,Data Visualization, Statistical Modeling, Hyperparameter Tuning,
+Exploratory Data Analysis, Backend, Leadership, Collaboration, Teamwork,
+Problem Solving, Microservices, Multi Agent
