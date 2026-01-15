@@ -68,52 +68,49 @@
 #### A. Parsing & Normalization
 1) **ResumeParserNode**
 - 역할: Resume 텍스트에서 섹션/경험/스킬 후보를 구조화
-- 출력: ResumeProfile(JSON)
+- 출력: Resume(JSON)
 
 2) **JDParserNode**
 - 역할: JD에서 책임/자격요건/우대사항/키워드 후보 추출
-- 출력: JDProfile(JSON)
+- 출력: JobDescription(JSON)
 
 3) **NormalizeKeywordsNode**
 - 역할: 동의어/표기 통일(예: CI/CD vs cicd, PostgreSQL vs PostgresSQL)
-- 출력: NormalizedProfile
+- 출력: Resume(JSON)
 
 #### B. Gap & Match
 4) **SkillGapNode**
 - 역할: JD 요구 스킬과 Resume 보유 스킬 비교
-- 출력: missing_skills, partial_matches, strong_matches
+- 출력: GapSummary(JSON): missing_skills, partial_matches, strong_matches, validated_missing_skills
 
-5) **MatchScoringNode**
-- 역할: 규칙 기반 점수(커버리지) + LLM 보정(중요도 가중)
-- 출력: score(0-100), rationale
-
-6) **GapValidatorNode**
+5) **GapValidatorNode**
 - 역할: missing_skills가 실제 JD에 존재하는지, 중복/허상 제거
-- 출력: validated_missing_skills
+- 출력: GapSummary(JSON): missing_skills, partial_matches, strong_matches, validated_missing_skills
+
+6) **MatchScoringNode**
+- 역할: 규칙 기반 점수(커버리지) + LLM 보정(중요도 가중)
+- 출력: GapSummary(JSON): missing_skills, partial_matches, strong_matches, validated_missing_skills
 
 #### C. Resume Improvement
 7) **BulletRewriteNode**
-- 역할: 기존 bullet을 **정직하게** 개선(키워드 삽입은 “가능한 범위”에서)
-- 출력: improved_bullets, before_after_pairs
-
-8) **BulletValidatorNode**
-- 역할: 과장/허위 뉘앙스 탐지, 너무 긴 문장/모호 표현 제거
-- 출력: final_bullets
+- 역할: 기존 resume bullet을 polish
+- 출력: RewriteSummary(JSON): improved_bullets, before_after_pairs, final_bullets
 
 #### D. Project Generation
-9) **ProjectIdeationNode**
+8) **ProjectIdeationNode**
 - 역할: missing_skills를 “증명 가능한 포트폴리오”로 바꾸는 프로젝트 2안 생성
-- 출력: project_ideas[2]
+- 출력: Project(JSON): project_ideas, architecture, weekly_plan
 
-10) **ArchitectureNode**
+9) **ArchitectureNode**
 - 역할: 각 프로젝트의 시스템 구조(서비스/DB/에이전트/실시간 여부) 설계
-- 출력: architecture (Mermaid 가능)
+- Mermaid 가능
+- 출력: Project(JSON): project_ideas, architecture, weekly_plan
 
-11) **SprintPlanNode**
+10) **SprintPlanNode**
 - 역할: 1주일 일정(D1~D7), 태스크/리스크/정의된 산출물
-- 출력: weekly_plan
+- 출력: Project(JSON): project_ideas, architecture, weekly_plan
 
-12) **ExportNode**
+11) **ExportNode**
 - 역할: 결과를 UI 표시용 + Markdown/JSON Export
 
 ### 분기/재시도(선택)
