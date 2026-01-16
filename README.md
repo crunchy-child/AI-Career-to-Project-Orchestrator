@@ -270,12 +270,14 @@ career-orchestrator/
             {
               "keyword_text": "terraform",
               "category": "required",
-              "evidence": "프로젝트 결과물로 IaC 적용 증명"
+              "evidence": "프로젝트 결과물로 IaC 적용 증명",
+              "importance": 5
             },
             {
               "keyword_text": "ci/cd",
               "category": "preferred",
-              "evidence": "GitHub Actions 기반 배포 자동화"
+              "evidence": "GitHub Actions 기반 배포 자동화",
+              "importance": 3
             }
           ],
           "constraints": [
