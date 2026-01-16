@@ -23,5 +23,5 @@ def dedupe_case_insensitive(items: list[str]) -> list[str]:
         key = x.lower()
         if key not in seen:
             seen.add(key)
-            out.append(x)  # 원본 표기 유지
+            out.append(key)
     return out
