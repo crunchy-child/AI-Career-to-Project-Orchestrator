@@ -45,22 +45,12 @@ class JDProfile(BaseModel):
         description="JD 전체에서 추출한 키워드 목록(카테고리 포함)",
     )
 
-    # 정규화 기준(선택): alias → canonical
-    # 예: {'cicd': 'CI/CD', 'k8s': 'Kubernetes', 'postgres': 'PostgreSQL'}
-    canonical_map: dict[str, str] = Field(
-        default_factory=dict,
-        description="JD 기준 표준 용어 맵(Resume 정규화에 사용)",
-    )
-
-    # --------- 편의 필드: tool이 채워도 되고, 안 채워도 됨 ---------
-    required_keywords_set: list[str] = Field(
-        default_factory=list,
-        description="required 키워드 dedupe/정규화 버전(선택, tool이 채움)",
-    )
-    preferred_keywords_set: list[str] = Field(
-        default_factory=list,
-        description="preferred 키워드 dedupe/정규화 버전(선택, tool이 채움)",
-    )
+    # # 정규화 기준(선택): alias → canonical
+    # # 예: {'cicd': 'CI/CD', 'k8s': 'Kubernetes', 'postgres': 'PostgreSQL'}
+    # canonical_map: dict[str, str] = Field(
+    #     default_factory=dict,
+    #     description="JD 기준 표준 용어 맵(Resume 정규화에 사용)",
+    # )
 
     # --------- Validators ---------
 

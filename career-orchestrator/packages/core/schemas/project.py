@@ -5,6 +5,7 @@ from typing import Optional, Literal
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 from .utils import norm_text
+from .keyword_base import BaseKeyword
 
 
 class DayPlan(BaseModel):
@@ -33,12 +34,10 @@ class ProjectIdea(BaseModel):
 
     title: str = Field(..., min_length=1)
     one_liner: str = Field(..., min_length=1, description="한 줄 설명")
-    value: str = Field(..., min_length=1, description="왜 이 프로젝트가 missing keyword를 증명하는지")
-    target_role: Optional[str] = Field(default=None, description="타겟 직무(선택)")
+    reasoning: str = Field(..., min_length=1, description="왜 이 프로젝트가 missing keyword를 증명하는지")
 
     # keyword coverage
-    covers_keywords: list[str] = Field(default_factory=list, description="이 프로젝트로 증명 가능한 키워드")
-    proof_points: list[str] = Field(default_factory=list, description="데모/증명 포인트(무엇을 보여줄지)")
+    covers_keywords: list[BaseKeyword] = Field(default_factory=list, description="이 프로젝트로 증명 가능한 키워드")
 
     # constraints & stack
     constraints: list[str] = Field(default_factory=list, description="예: 비용 0, 1주일, 팀 2명")
@@ -51,10 +50,10 @@ class ProjectPlan(BaseModel):
 
     idea: ProjectIdea
     architecture: ArchitectureSpec = Field(default_factory=ArchitectureSpec)
-    weekly_plan: list[DayPlan] = Field(default_factory=list, description="D1~D7 계획")
+    weekly_plan: list[DayPlan] = Field(default_factory=list, max_length=7, description="D1~D7 계획")
 
-    risks: list[str] = Field(default_factory=list)
-    mitigations: list[str] = Field(default_factory=list)
+    downside: list[str] = Field(default_factory=list)
+    workaround: list[str] = Field(default_factory=list)
 
 
 class ProjectOutput(BaseModel):

@@ -2,53 +2,22 @@
 from __future__ import annotations
 
 from typing import Optional, Literal
-from pydantic import BaseModel, Field, ConfigDict, field_validator
+from pydantic import BaseModel, Field, ConfigDict
 
-from .keyword_base import BaseKeyword
-from .utils import norm_text, dedupe_case_insensitive
-
+from .resume import ResumeKeyword
+from .jd import JDKeyword
 
 JDCategory = Literal["required", "preferred"]
 
 
-class KeywordEvidence(BaseModel):
+class KeywordMatch(BaseModel):
     """
-    특정 키워드가 Resume 어디에 근거로 존재했는지 기록.
-    점수 계산(Experience/Project vs Skills-only)에도 그대로 사용 가능.
-    """
-    model_config = ConfigDict(extra="forbid")
-
-    keyword: str = Field(..., min_length=1)
-    jd_category: JDCategory = Field(..., description="JD에서 required인지 preferred인지")
-    found_in: Literal["experience_project", "skills_only", "missing"] = Field(
-        ...,
-        description="Resume에서 키워드가 발견된 위치",
-    )
-    jd_evidence: Optional[str] = Field(default=None, description="JD에서 키워드가 등장한 근거(선택)")
-    resume_evidence: Optional[str] = Field(
-        default=None,
-        description="Resume에서 키워드가 등장한 근거(선택: bullet 일부/문장 일부)",
-    )
-
-    # 점수 계산에 사용된 값(디버깅/설명용, 선택)
-    base_weight: Optional[float] = Field(default=None, description="required=0.7, preferred=0.3")
-    multiplier: Optional[float] = Field(default=None, description="위치 기반 multiplier(예: req exp=1.0)")
-    contribution: Optional[float] = Field(default=None, description="base_weight * multiplier")
-
-
-class MatchScoreBreakdown(BaseModel):
-    """
-    매칭 점수 계산 세부내역(선택이지만 추천).
-    README에 있는 공식을 구현/검증하기 쉬워짐.
+    키워드 매칭 결과.
     """
     model_config = ConfigDict(extra="forbid")
-
-    max_possible_sum: float = Field(..., ge=0)
-    covered_sum: float = Field(..., ge=0)
-    required_base_sum: float = Field(default=0.0, ge=0)
-    preferred_base_sum: float = Field(default=0.0, ge=0)
-    required_covered_sum: float = Field(default=0.0, ge=0)
-    preferred_covered_sum: float = Field(default=0.0, ge=0)
+    
+    keyword_pair: tuple[ResumeKeyword, JDKeyword] = Field(..., description="매칭된 키워드 쌍")
+    match_type: Literal["strong", "partial", "missing"] = Field(..., description="매칭 유형")
 
 
 class GapSummary(BaseModel):
@@ -64,46 +33,30 @@ class GapSummary(BaseModel):
     match_score: int = Field(..., ge=0, le=100)
 
     # 분류 결과
-    strong_matches: list[BaseKeyword] = Field(default_factory=list, description="Resume에 강하게 존재(주로 exp/project)")
-    partial_matches: list[BaseKeyword] = Field(default_factory=list, description="약하게 존재(예: skills-only 또는 fuzzy)")
-    missing_keywords: list[BaseKeyword] = Field(default_factory=list, description="초기 missing(검증 전)")
-    validated_missing_keywords: list[BaseKeyword] = Field(default_factory=list, description="검증 후 missing")
+    keyword_matches: list[KeywordMatch] = Field(default_factory=list, description="매칭된 키워드 목록")
+    missing_keywords: list[JDKeyword] = Field(default_factory=list, description="missing keywords")
+    validated_missing_keywords: list[JDKeyword] = Field(default_factory=list, description="검증 후 missing")
 
     # 요약/근거
     notes: Optional[str] = Field(default=None, description="점수/갭에 대한 짧은 설명")
 
-    # 선택: 디버깅/설명/시각화에 유용
-    breakdown: Optional[MatchScoreBreakdown] = None
-    evidences: list[KeywordEvidence] = Field(default_factory=list)
-
     # --------- Validators ---------
-    @field_validator("strong_matches", "partial_matches", "missing_keywords", "validated_missing_keywords")
-    @classmethod
-    def normalize_lists(cls, v: list[BaseKeyword]) -> list[BaseKeyword]:
-        # keyword_text 정규화
-        for keyword in v:
-            if isinstance(keyword.keyword_text, str) and keyword.keyword_text.strip():
-                keyword.keyword_text = norm_text(keyword.keyword_text).lower()
+    # @field_validator("keyword_matches", "missing_keywords", "validated_missing_keywords")
+    # @classmethod
+    # def normalize_lists(cls, v: list[BaseKeyword]) -> list[BaseKeyword]:
+    #     # keyword_text 정규화
+    #     for keyword in v:
+    #         if isinstance(keyword.keyword_text, str) and keyword.keyword_text.strip():
+    #             keyword.keyword_text = norm_text(keyword.keyword_text).lower()
         
-        # 중복 제거 (keyword_text 기준)
-        seen: set[str] = set()
-        out: list[BaseKeyword] = []
-        for keyword in v:
-            if not keyword.keyword_text:
-                continue
-            key = keyword.keyword_text.lower()
-            if key not in seen:
-                seen.add(key)
-                out.append(keyword)
-        return out
-
-    @field_validator("evidences")
-    @classmethod
-    def normalize_evidences(cls, v: list[KeywordEvidence]) -> list[KeywordEvidence]:
-        for e in v:
-            e.keyword = norm_text(e.keyword)
-            if e.jd_evidence:
-                e.jd_evidence = norm_text(e.jd_evidence)
-            if e.resume_evidence:
-                e.resume_evidence = norm_text(e.resume_evidence)
-        return v
+    #     # 중복 제거 (keyword_text 기준)
+    #     seen: set[str] = set()
+    #     out: list[BaseKeyword] = []
+    #     for keyword in v:
+    #         if not keyword.keyword_text:
+    #             continue
+    #         key = keyword.keyword_text.lower()
+    #         if key not in seen:
+    #             seen.add(key)
+    #             out.append(keyword)
+    #     return out
