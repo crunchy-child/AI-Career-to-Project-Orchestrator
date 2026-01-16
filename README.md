@@ -113,14 +113,23 @@ Final Output (JSON + optional Markdown export)
 ## 3) Data Schemas (v2)
 
 - `resume.py` → `ResumeProfile`
+  - `raw_text`
+  - `keywords`
+  - `normalized`, `normalization_notes`, `normalization_map_applied`
+  - `validated_keywords_set`
 - `jd.py` → `JDProfile`
+  - `raw_text`
+  - `keywords`
+  - `role_title`
+  - `company`
 - `gap.py` → `GapSummary`
   - `match_score`
-  - `strong_matches`, `partial_matches`
+  - `keyword_matches`
   - `missing_keywords`, `validated_missing_keywords`
+  - `notes`
 - `project.py` → `ProjectOutput`
-  - exactly **2** project plans
-  - each includes `architecture` + `weekly_plan (D1–D7)`
+  - `project_ideas`
+  - `notes`
 
 ---
 
@@ -133,8 +142,14 @@ career-orchestrator/
     api/                   # FastAPI (Dockerized)
   packages/
     core/
-      schemas/             # resume.py, jd.py, gap.py, project.py
-      utils/               # normalization, scoring, text utils
+      schemas/             
+        __init__.py
+        resume.py
+        jd.py
+        gap.py
+        project.py
+        keyword_base.py
+        utils.py
     tools/                 # parsing/normalization/gap/score/export tools
     agents/                # resume_agent.py, project_agent.py (tool-calling)
     graph/                 # workflow.py (LangGraph: 2 nodes)
