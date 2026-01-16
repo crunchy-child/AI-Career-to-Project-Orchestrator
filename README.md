@@ -200,7 +200,7 @@ career-orchestrator/
             "importance": 5
           }
         ],
-        "match_type": "strong"
+        "match_type": "partial"
       },
       {
         "keyword_pair": [
