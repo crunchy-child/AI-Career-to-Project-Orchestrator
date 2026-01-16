@@ -10,9 +10,13 @@ class BaseKeyword(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    text: str = Field(
-        ..., min_length=1, description="키워드 원문 표기(예: 'CI/CD', 'K8s')"
+    
+    keyword_text: str = Field(
+        ..., min_length=1, description="키워드 텍스트 "
     )
+
+    category: str = Field(default="default", description="키워드 카테고리")
+    
     evidence: Optional[str] = Field(
         default=None, description="키워드가 등장한 근거 문장(선택)"
     )

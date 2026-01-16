@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Optional, Literal
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
+from .keyword_base import BaseKeyword
 from .utils import norm_text, dedupe_case_insensitive
 
 
@@ -63,10 +64,10 @@ class GapSummary(BaseModel):
     match_score: int = Field(..., ge=0, le=100)
 
     # 분류 결과
-    strong_matches: list[str] = Field(default_factory=list, description="Resume에 강하게 존재(주로 exp/project)")
-    partial_matches: list[str] = Field(default_factory=list, description="약하게 존재(예: skills-only 또는 fuzzy)")
-    missing_keywords: list[str] = Field(default_factory=list, description="초기 missing(검증 전)")
-    validated_missing_keywords: list[str] = Field(default_factory=list, description="검증 후 missing")
+    strong_matches: list[BaseKeyword] = Field(default_factory=list, description="Resume에 강하게 존재(주로 exp/project)")
+    partial_matches: list[BaseKeyword] = Field(default_factory=list, description="약하게 존재(예: skills-only 또는 fuzzy)")
+    missing_keywords: list[BaseKeyword] = Field(default_factory=list, description="초기 missing(검증 전)")
+    validated_missing_keywords: list[BaseKeyword] = Field(default_factory=list, description="검증 후 missing")
 
     # 요약/근거
     notes: Optional[str] = Field(default=None, description="점수/갭에 대한 짧은 설명")
@@ -78,9 +79,23 @@ class GapSummary(BaseModel):
     # --------- Validators ---------
     @field_validator("strong_matches", "partial_matches", "missing_keywords", "validated_missing_keywords")
     @classmethod
-    def normalize_lists(cls, v: list[str]) -> list[str]:
-        cleaned = [norm_text(x) for x in v if isinstance(x, str) and x.strip()]
-        return dedupe_case_insensitive(cleaned)
+    def normalize_lists(cls, v: list[BaseKeyword]) -> list[BaseKeyword]:
+        # keyword_text 정규화
+        for keyword in v:
+            if isinstance(keyword.keyword_text, str) and keyword.keyword_text.strip():
+                keyword.keyword_text = norm_text(keyword.keyword_text).lower()
+        
+        # 중복 제거 (keyword_text 기준)
+        seen: set[str] = set()
+        out: list[BaseKeyword] = []
+        for keyword in v:
+            if not keyword.keyword_text:
+                continue
+            key = keyword.keyword_text.lower()
+            if key not in seen:
+                seen.add(key)
+                out.append(keyword)
+        return out
 
     @field_validator("evidences")
     @classmethod

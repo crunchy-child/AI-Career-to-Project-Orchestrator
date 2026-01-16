@@ -5,7 +5,7 @@ from typing import Optional, Literal
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 from .keyword_base import BaseKeyword
-from .utils import norm_text, dedupe_case_insensitive
+from .utils import dedupe_jd_keywords
 
 
 JDCategory = Literal["required", "preferred", "responsibility", "other"]
@@ -67,8 +67,4 @@ class JDProfile(BaseModel):
     @field_validator("keywords")
     @classmethod
     def normalize_keywords(cls, v: list[JDKeyword]) -> list[JDKeyword]:
-        for k in v:
-            k.text = norm_text(k.text)
-            if k.evidence:
-                k.evidence = norm_text(k.evidence)
-        return v
+        return dedupe_jd_keywords(v)
