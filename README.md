@@ -1,11 +1,7 @@
 # AI Career-to-Project Orchestrator
 
-**Option A (Paste JD Text):** Users paste **Resume text + Job Description (JD) text**, and the system:
-
 1. computes a **JD matching score (0–100)** and **validated missing keywords**, then
 2. generates **2 portfolio project plans** (architecture + 7-day sprint plan) that help you _prove_ those missing keywords for your target role.
-
-> **Scope note (v2):** We **do not rewrite/improve the resume itself** in this MVP. The output is a **project blueprint** that helps you build evidence to match your target job.
 
 ---
 
@@ -18,9 +14,9 @@
   - **`preferences`** (optional): `{ stack_pref, constraints, role }`
 - Output:
   - **Match score (0–100)** with rationale
-  - **Validated missing keywords** (Top N)
+  - **Validated missing keywords**
   - **2 project proposals**, each with:
-    - value & proof points
+    - reasoning
     - architecture (Mermaid optional)
     - **7-day plan (D1–D7)**
 
@@ -66,7 +62,7 @@ Let `w_i` be the base weight (0.7 or 0.3) and `m_i` be the evidence multiplier f
 
 We compute initial missing keywords via set difference, then validate by:
 
-- removing duplicates/alias collisions
+- removing duplicates/alias collisions (normalizing ResumeKeyword based on JDKeyWord)
 - ensuring the keyword truly exists in JD text/parsed JD keywords
 
 The result is returned as `validated_missing_keywords`.
@@ -91,7 +87,7 @@ We use **LangGraph** to orchestrate the handoff and optional retry branches.
    ↓
 Resume Analysis Agent
    ↓  (validated_missing_keywords + score)
-Project Planner Agent (uses preferences)
+Project Planner Agent 
    ↓
 Final Output (JSON + optional Markdown export)
 ```
@@ -103,15 +99,14 @@ Final Output (JSON + optional Markdown export)
 - `jd_parse_tool(jd_text) -> JDProfile`
 - `resume_parse_tool(resume_text) -> ResumeProfile`
 - `normalize_keywords_tool(resume_profile, jd_profile) -> ResumeProfile` (normalize resume based on JD vocabulary)
-- `extract_sets_tool(jd_profile, resume_profile) -> jd_sets, resume_sets`
-- `gap_compute_tool(jd_sets, resume_sets) -> GapSummary`
-- `score_tool(gap_summary, jd_sets) -> match_score, rationale`
+- `gap_compute_tool(JDProfile, ResumeProfile) -> GapSummary`
+- `score_tool(gap_summary) -> GapSummary`
 
 **Project Planner Agent tools**
 
-- `project_ideation_tool(validated_missing_keywords, role, constraints) -> 2 ideas`
-- `architecture_tool(ideas, stack_pref) -> architecture (+ optional mermaid)`
-- `sprint_plan_tool(ideas, constraints) -> 7-day plan`
+- `project_ideation_tool(GapSummary) -> list[ProjectIdea]`
+- `architecture_tool(list[ProjectIdea]) -> list[ArchitectureSpec]`
+- `project_plan_tool(list[ProjectIdea], list[ArchitectureSpec]) -> list[ProjectPlan]`
 
 ---
 
