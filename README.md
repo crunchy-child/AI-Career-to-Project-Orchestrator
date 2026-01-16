@@ -183,19 +183,17 @@ career-orchestrator/
 
 ```json
 {
-  "analysis": {
+  "GapSummary": {
     "match_score": 78,
-    "strong_matches": ["Python", "REST API"],
-    "partial_matches": ["CI/CD"],
-    "missing_keywords": ["Kubernetes", "OAuth 2.0", "LangGraph"],
-    "validated_missing_keywords": ["Kubernetes", "OAuth 2.0", "LangGraph"],
-    "notes": "Required coverage weighted higher than preferred."
+    "keyword_matches": ["KeywordMatch": {"keyword_pair": ("ResumeKeyword": {"keyword_text": "python", "category": "skills", "evidence": "It was in the skills section."}, "JDKeyword": {"keyword_text": "python", "category": "required", "evidence": "It was in the job requirements.", "importance": 5}), "match_type": "strong"},
+                        ...],
+    "missing_keywords": [JDKeyword, JDKeyword, ...],
+    "validated_missing_keywords": [JDKeyword, JDKeyword, ...],
+    "notes": "Most of the key skills are satisfied, but few are missing."
   },
-  "projects": {
-    "project_ideas": [
-      { "title": "...", "architecture": "...", "weekly_plan": "..." },
-      { "title": "...", "architecture": "...", "weekly_plan": "..." }
-    ]
+  "ProjectOutput": {
+    "project_ideas": [ProjectPlan, ProjectPlan],
+    "notes": "Project 1 is more focused on agentic programming, while Project 2 is more focused on Data analytics (NumPy)."
   }
 }
 ```
