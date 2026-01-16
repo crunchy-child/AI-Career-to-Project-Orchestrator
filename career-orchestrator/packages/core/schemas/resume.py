@@ -1,7 +1,7 @@
-# packages/core/schemas/resume.py
-from __future__ import annotations
+from __future__ import annotations # For Version < 3.10
 
 from typing import Optional, Literal
+
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 from .utils import norm_text, dedupe_case_insensitive
@@ -9,36 +9,27 @@ from .utils import norm_text, dedupe_case_insensitive
 
 class ResumeBullet(BaseModel):
     """Experience/Project 섹션의 bullet 한 줄."""
-
     model_config = ConfigDict(extra="forbid")
 
     text: str = Field(..., min_length=1, description="원본 bullet 문장")
     # 나중에 키워드 추출을 해두면 점수 계산/근거 제시가 쉬움 (선택)
-    keywords: list[str] = Field(
-        default_factory=list, description="이 bullet에서 추출한 키워드(선택)"
-    )
+    keywords: list[str] = Field(default_factory=list, description="이 bullet에서 추출한 키워드(선택)")
 
 
 class ResumeEntry(BaseModel):
     """Experience 또는 Project 항목 하나."""
-
     model_config = ConfigDict(extra="forbid")
 
-    entry_type: Literal["experience", "project"] = Field(
-        ..., description="경력/프로젝트 구분"
-    )
+    entry_type: Literal["experience", "project"] = Field(..., description="경력/프로젝트 구분")
     title: Optional[str] = Field(default=None, description="직함 또는 프로젝트명")
     org: Optional[str] = Field(default=None, description="회사/조직/팀")
     start: Optional[str] = Field(default=None, description="시작일(문자열, MVP)")
     end: Optional[str] = Field(default=None, description="종료일(문자열, MVP)")
-    bullets: list[ResumeBullet] = Field(
-        default_factory=list, description="성과/업무 bullet 목록"
-    )
+    bullets: list[ResumeBullet] = Field(default_factory=list, description="성과/업무 bullet 목록")
 
 
 class ResumeEducation(BaseModel):
     """학력은 v2 점수에는 미포함이지만, 추후 eligibility 체크를 위해 구조만 둠."""
-
     model_config = ConfigDict(extra="forbid")
 
     school: Optional[str] = None
@@ -53,13 +44,10 @@ class ResumeProfile(BaseModel):
     ResumeParserTool 출력 + NormalizeKeywordsTool 출력(동일 스키마).
     점수 계산을 위해 Skills 섹션과 Experience/Project 섹션을 분리해서 보관한다.
     """
-
     model_config = ConfigDict(extra="forbid")
 
     # 원문(디버깅/추적용). 길면 저장 안 해도 되지만 MVP에서는 있으면 편함.
-    raw_text: Optional[str] = Field(
-        default=None, description="사용자가 붙여넣은 원문 레주메(선택)"
-    )
+    raw_text: Optional[str] = Field(default=None, description="사용자가 붙여넣은 원문 레주메(선택)")
 
     # Skills 섹션에서 추출한 스킬들 (정규화 도구 적용 대상)
     skills: list[str] = Field(
@@ -68,7 +56,7 @@ class ResumeProfile(BaseModel):
     )
 
     # Experience/Project 항목들
-    experience: list[ResumeEntry] = Field(
+    entries: list[ResumeEntry] = Field(
         default_factory=list,
         description="Experience + Project 섹션 항목들",
     )
@@ -78,9 +66,7 @@ class ResumeProfile(BaseModel):
 
     # 정규화 상태(너희 설계에서 NormalizeKeywordsTool이 True로 바꿔서 반환)
     normalized: bool = Field(default=False, description="JD 기준 정규화 적용 여부")
-    normalization_notes: list[str] = Field(
-        default_factory=list, description="정규화 과정 메모(선택)"
-    )
+    normalization_notes: list[str] = Field(default_factory=list, description="정규화 과정 메모(선택)")
     normalization_map_applied: dict[str, str] = Field(
         default_factory=dict,
         description="적용된 alias/표기 변환 맵 (예: {'cicd':'CI/CD'})",
@@ -108,11 +94,9 @@ class ResumeProfile(BaseModel):
     @classmethod
     def normalize_entry_text(cls, v: list[ResumeEntry]) -> list[ResumeEntry]:
         # bullet 텍스트 최소 정리
-        for e in v:
-            for b in e.bullets:
+        for e in v: # 각 entry에 대해 반복
+            for b in e.bullets: # 각 bullet에 대해 반복
                 b.text = norm_text(b.text)
                 if b.keywords:
-                    b.keywords = dedupe_case_insensitive(
-                        [norm_text(k) for k in b.keywords if k.strip()]
-                    )
+                    b.keywords = dedupe_case_insensitive([norm_text(k) for k in b.keywords if k.strip()])
         return v
