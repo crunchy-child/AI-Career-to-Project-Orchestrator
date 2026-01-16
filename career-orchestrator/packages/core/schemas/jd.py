@@ -4,46 +4,22 @@ from __future__ import annotations
 from typing import Optional, Literal
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
+from .keyword_base import BaseKeyword
 from .utils import norm_text, dedupe_case_insensitive
 
 
 JDCategory = Literal["required", "preferred", "responsibility", "other"]
 
 
-class JDKeyword(BaseModel):
+class JDKeyword(BaseKeyword):
     """
     JD에서 추출한 키워드 1개.
     category는 required/preferred 중심으로 쓰고, 나머지는 optional.
     """
-
-    model_config = ConfigDict(extra="forbid")
-
-    text: str = Field(
-        ..., min_length=1, description="키워드 원문 표기(예: 'CI/CD', 'K8s')"
-    )
     category: JDCategory = Field(default="other")
-    # JD 내 근거 문장(짧게). missing validation/설명에 유용(선택)
-    evidence: Optional[str] = Field(
-        default=None, description="JD에서 해당 키워드가 등장한 근거 문장(선택)"
-    )
     # 중요도(선택): 나중에 required 내부에서도 가중치 세분화 가능
     importance: Optional[int] = Field(
         default=None, ge=1, le=5, description="1(낮음)~5(높음), 선택"
-    )
-
-
-class JDSection(BaseModel):
-    """
-    JD의 섹션(Responsibilities / Requirements / Preferred 등)을 구조화.
-    MVP에서는 섹션 텍스트와 키워드만 있어도 충분.
-    """
-
-    model_config = ConfigDict(extra="forbid")
-
-    section_type: JDCategory = Field(default="other")
-    text: str = Field(..., min_length=1, description="섹션 본문 텍스트")
-    keywords: list[str] = Field(
-        default_factory=list, description="이 섹션에서 추출된 키워드(선택)"
     )
 
 
@@ -62,9 +38,6 @@ class JDProfile(BaseModel):
         default=None, description="직무 타이틀(추출 가능하면)"
     )
     company: Optional[str] = Field(default=None, description="회사명(추출 가능하면)")
-
-    # 섹션 구조(선택)
-    sections: list[JDSection] = Field(default_factory=list)
 
     # 핵심: 카테고리별 키워드 구조화
     keywords: list[JDKeyword] = Field(
@@ -90,16 +63,6 @@ class JDProfile(BaseModel):
     )
 
     # --------- Validators ---------
-    @field_validator("sections")
-    @classmethod
-    def normalize_sections(cls, v: list[JDSection]) -> list[JDSection]:
-        for s in v:
-            s.text = norm_text(s.text)
-            if s.keywords:
-                s.keywords = dedupe_case_insensitive(
-                    [norm_text(k) for k in s.keywords if k.strip()]
-                )
-        return v
 
     @field_validator("keywords")
     @classmethod

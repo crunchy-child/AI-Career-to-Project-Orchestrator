@@ -4,8 +4,17 @@ from typing import Optional, Literal
 
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
+from .keyword_base import BaseKeyword
 from .utils import norm_text, dedupe_case_insensitive
 
+ResumeCategory = Literal["skills","entries"]
+
+class ResumeKeyword(BaseKeyword):
+    """
+    JD에서 추출한 키워드 1개.
+    category는 required/preferred 중심으로 쓰고, 나머지는 optional.
+    """
+    category: ResumeCategory = Field(default="skills")
 
 class ResumeBullet(BaseModel):
     """Experience/Project 섹션의 bullet 한 줄."""
