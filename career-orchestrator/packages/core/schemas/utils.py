@@ -15,7 +15,7 @@ def norm_text(s: str) -> str:
 def dedupe_case_insensitive(items: list[str]) -> list[str]:
     """
     대소문자 구분 없이 중복 제거.
-    원본 표기를 유지하면서 중복만 제거.
+    소문자로 저장.
     """
     seen: set[str] = set()
     out: list[str] = []
@@ -23,5 +23,5 @@ def dedupe_case_insensitive(items: list[str]) -> list[str]:
         key = x.lower()
         if key not in seen:
             seen.add(key)
-            out.append(x)  # 원본 표기 유지
+            out.append(key)
     return out
