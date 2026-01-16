@@ -4,9 +4,7 @@ from __future__ import annotations
 from typing import Optional, Literal
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
-
-def _norm_text(s: str) -> str:
-    return " ".join(s.strip().split())
+from .utils import norm_text
 
 
 class DayPlan(BaseModel):
@@ -80,8 +78,8 @@ class ProjectOutput(BaseModel):
     def ensure_two_distinct_projects(cls, v: list[ProjectPlan]) -> list[ProjectPlan]:
         # 제목이 완전히 같은 두 안이 들어오면 퀄리티가 낮으니 방지(완벽 검증은 아님)
         if len(v) == 2:
-            t0 = _norm_text(v[0].idea.title).lower()
-            t1 = _norm_text(v[1].idea.title).lower()
+            t0 = norm_text(v[0].idea.title).lower()
+            t1 = norm_text(v[1].idea.title).lower()
             if t0 == t1:
                 raise ValueError("project_ideas must contain two distinct project titles")
         return v

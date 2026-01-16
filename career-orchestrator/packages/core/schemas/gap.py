@@ -4,20 +4,7 @@ from __future__ import annotations
 from typing import Optional, Literal
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
-
-def _norm_text(s: str) -> str:
-    return " ".join(s.strip().split())
-
-
-def _dedupe_case_insensitive(items: list[str]) -> list[str]:
-    seen: set[str] = set()
-    out: list[str] = []
-    for x in items:
-        key = x.lower()
-        if key not in seen:
-            seen.add(key)
-            out.append(x)
-    return out
+from .utils import norm_text, dedupe_case_insensitive
 
 
 JDCategory = Literal["required", "preferred"]
@@ -92,16 +79,16 @@ class GapSummary(BaseModel):
     @field_validator("strong_matches", "partial_matches", "missing_keywords", "validated_missing_keywords")
     @classmethod
     def normalize_lists(cls, v: list[str]) -> list[str]:
-        cleaned = [_norm_text(x) for x in v if isinstance(x, str) and x.strip()]
-        return _dedupe_case_insensitive(cleaned)
+        cleaned = [norm_text(x) for x in v if isinstance(x, str) and x.strip()]
+        return dedupe_case_insensitive(cleaned)
 
     @field_validator("evidences")
     @classmethod
     def normalize_evidences(cls, v: list[KeywordEvidence]) -> list[KeywordEvidence]:
         for e in v:
-            e.keyword = _norm_text(e.keyword)
+            e.keyword = norm_text(e.keyword)
             if e.jd_evidence:
-                e.jd_evidence = _norm_text(e.jd_evidence)
+                e.jd_evidence = norm_text(e.jd_evidence)
             if e.resume_evidence:
-                e.resume_evidence = _norm_text(e.resume_evidence)
+                e.resume_evidence = norm_text(e.resume_evidence)
         return v
