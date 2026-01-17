@@ -1,11 +1,11 @@
 # packages/core/schemas/project.py
 from __future__ import annotations
 
-from typing import Optional, Literal
+from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 from .utils import norm_text
-from .keyword_base import BaseKeyword
+from .jd import JDKeyword
 
 
 class DayPlan(BaseModel):
@@ -37,7 +37,7 @@ class ProjectIdea(BaseModel):
     reasoning: str = Field(..., min_length=1, description="왜 이 프로젝트가 missing keyword를 증명하는지")
 
     # keyword coverage
-    covers_keywords: list[BaseKeyword] = Field(default_factory=list, description="이 프로젝트로 증명 가능한 키워드")
+    covers_keywords: list[JDKeyword] = Field(default_factory=list, description="이 프로젝트로 증명 가능한 키워드")
 
     # constraints & stack
     constraints: list[str] = Field(default_factory=list, description="예: 비용 0, 1주일, 팀 2명")
