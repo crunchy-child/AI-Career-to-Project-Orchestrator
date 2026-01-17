@@ -79,7 +79,7 @@ def main():
     print("Test completed successfully!")
     print("=" * 60)
 
-    print(result.get("messages"))
+    # print(result.get("messages"))
 
 
 if __name__ == "__main__":
