@@ -16,10 +16,14 @@ class JDKeyword(BaseKeyword):
     JD에서 추출한 키워드 1개.
     category는 required/preferred 중심으로 쓰고, 나머지는 optional.
     """
+
     category: JDCategory = Field(default="other")
     # 중요도(선택): 나중에 required 내부에서도 가중치 세분화 가능
     importance: Optional[int] = Field(
         default=None, ge=1, le=5, description="1(낮음)~5(높음), 선택"
+    )
+    importance_reason: Optional[str] = Field(
+        default=None, description="Reasoning of the importance level (1 - 5)."
     )
 
 
