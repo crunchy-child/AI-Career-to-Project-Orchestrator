@@ -55,7 +55,3 @@ def build_graph():
 
     # Compile and return
     return builder.compile()
-
-
-# Pre-built graph instance for direct import
-graph = build_graph()
