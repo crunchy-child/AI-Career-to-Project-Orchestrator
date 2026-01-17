@@ -8,6 +8,7 @@ Uses create_react_agent with jd_parse_tool.
 
 from __future__ import annotations
 
+from langchain.chat_models import init_chat_model
 from langgraph.prebuilt import create_react_agent
 
 from packages.tools.jd_parse import jd_parse_tool
@@ -32,8 +33,8 @@ def create_resume_agent():
     Returns:
         CompiledGraph: A LangGraph agent that can parse JDs and analyze resumes
     """
-    return create_react_agent(
-        "openai:gpt-4o",
-        tools=TOOLS,
-        prompt=AGENT_PROMPT,
-    )
+    llm = init_chat_model("gpt-4o", temperature=0.1)
+
+    agent = create_react_agent(llm, tools=TOOLS, prompt=AGENT_PROMPT)
+
+    return agent
