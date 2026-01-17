@@ -76,7 +76,7 @@ class ResumeProfile(BaseModel):
 
     # --------- 편의 메서드성 필드: 점수 계산을 쉽게 하기 위한 인덱스(선택) ---------
     # Tool에서 채워도 되고, 안 채워도 됨. (MVP면 tool에서 계산 추천)
-    normalized_keywords_set: list[ResumeKeyword] = Field(
+    validated_keywords_set: list[ResumeKeyword] = Field(
         default_factory=list,
         description="Resume에서 추출한 키워드 목록(카테고리 포함)의 정규화/중복 제거 버전(선택, tool이 채움)",
     )
