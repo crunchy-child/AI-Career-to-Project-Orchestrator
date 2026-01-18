@@ -57,6 +57,7 @@ def dedupe_resume_keywords(items: list[TKeyword]) -> list[TKeyword]:
         {"skills": 0, "entries": 1},
     )
 
+
 def dedupe_jd_keywords(items: list[TKeyword]) -> list[TKeyword]:
     """
     대소문자 구분 없이 중복 제거.

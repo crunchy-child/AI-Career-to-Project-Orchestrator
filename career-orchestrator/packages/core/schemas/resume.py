@@ -1,4 +1,4 @@
-from __future__ import annotations # For Version < 3.10
+from __future__ import annotations  # For Version < 3.10
 
 from typing import Optional, Literal
 
@@ -7,14 +7,17 @@ from pydantic import BaseModel, Field, ConfigDict, field_validator
 from .keyword_base import BaseKeyword
 from .utils import dedupe_resume_keywords
 
-ResumeCategory = Literal["skills","entries"]
+ResumeCategory = Literal["skills", "entries"]
+
 
 class ResumeKeyword(BaseKeyword):
     """
     Resume에서 추출한 키워드 1개.
     category는 skills/entries 중심으로 쓰고, 나머지는 optional.
     """
+
     category: ResumeCategory = Field(default="skills")
+
 
 # class ResumeBullet(BaseModel):
 #     """Experience/Project 섹션의 bullet 한 줄."""
@@ -53,14 +56,16 @@ class ResumeProfile(BaseModel):
     ResumeParserTool 출력 + NormalizeKeywordsTool 출력(동일 스키마).
     점수 계산을 위해 Skills 섹션과 Experience/Project 섹션을 분리해서 보관한다.
     """
+
     model_config = ConfigDict(extra="forbid")
 
     # 원문(디버깅/추적용). 길면 저장 안 해도 되지만 MVP에서는 있으면 편함.
-    raw_text: Optional[str] = Field(default=None, description="사용자가 붙여넣은 원문 레주메(선택)")
+    raw_text: Optional[str] = Field(
+        default=None, description="사용자가 붙여넣은 원문 레주메(선택)"
+    )
 
     keywords: list[ResumeKeyword] = Field(
-        default_factory=list, 
-        description="Resume에서 추출한 키워드 목록(카테고리 포함)"
+        default_factory=list, description="Resume에서 추출한 키워드 목록(카테고리 포함)"
     )
 
     # 학력(현재 점수에는 미포함; 추후 eligibility/필터에 활용 가능)
@@ -68,11 +73,13 @@ class ResumeProfile(BaseModel):
 
     # 정규화 상태(너희 설계에서 NormalizeKeywordsTool이 True로 바꿔서 반환)
     normalized: bool = Field(default=False, description="JD 기준 정규화 적용 여부")
-    normalization_notes: list[str] = Field(default_factory=list, description="정규화 과정 메모(선택)")
-    normalization_map_applied: dict[str, str] = Field(
-        default_factory=dict,
-        description="적용된 alias/표기 변환 맵 (예: {'cicd':'CI/CD'})",
+    normalization_notes: list[str] = Field(
+        default_factory=list, description="정규화 과정 메모(선택)"
     )
+    # normalization_map_applied: dict[str, str] = Field(
+    #     default_factory=dict,
+    #     description="적용된 alias/표기 변환 맵 (예: {'cicd':'CI/CD'})",
+    # )
 
     # --------- 편의 메서드성 필드: 점수 계산을 쉽게 하기 위한 인덱스(선택) ---------
     # Tool에서 채워도 되고, 안 채워도 됨. (MVP면 tool에서 계산 추천)
@@ -86,4 +93,7 @@ class ResumeProfile(BaseModel):
     @field_validator("keywords")
     @classmethod
     def normalize_keywords(cls, v: list[ResumeKeyword]) -> list[ResumeKeyword]:
-        return dedupe_resume_keywords(v)
+        print(f"v: {v}")
+        new = dedupe_resume_keywords(v)
+        print(f"new: {new}")
+        return new

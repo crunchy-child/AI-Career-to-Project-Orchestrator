@@ -9,7 +9,7 @@ from langchain_core.tools import tool
 from packages.core.schemas import ResumeProfile
 
 SYSTEM_PROMPT = """You are a Resume parser.
-Extract structured information from the given resume text.
+Extract structured information from the given resume text and ONLY update keywords Field.
 
 For keywords, categorize them as:
 - "skills": Technical skills listed in Skills/Technologies section
@@ -23,6 +23,9 @@ For each keyword, provide:
 IMPORTANT distinctions:
 - "skills" category: Keywords that appear in a Skills section or list (no project/work context)
 - "entries" category: Keywords that appear in Experience/Project bullets with actual usage evidence
+
+IMPORTANT notes:
+- Do NOT fill in any Fields other than `keywords`
 
 Focus on:
 - Programming languages (python, java, typescript, etc.)
