@@ -21,12 +21,10 @@ You have access to the following tools:
 
 1. jd_parse_tool: Use this to parse a Job Description (JD) and extract:
    - Required and preferred skills/qualifications
-   - Key responsibilities
    - Company and role information
 
 2. resume_parse_tool: Use this to parse a Resume and extract:
-   - Technical skills from the Skills section
-   - Skills demonstrated in Experience/Project sections
+   - Technical keywords (languages, frameworks, tools, platforms, etc.)
 
 When given both a JD and a Resume:
 1. First, parse the JD using jd_parse_tool

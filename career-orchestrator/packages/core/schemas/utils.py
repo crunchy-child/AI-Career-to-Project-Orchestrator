@@ -49,13 +49,19 @@ def _dedupe_keywords_by_priority(
 def dedupe_resume_keywords(items: list[TKeyword]) -> list[TKeyword]:
     """
     대소문자 구분 없이 중복 제거.
-    소문자로 저장.
+    소문자로 저장. 먼저 나온 키워드를 유지.
     """
-    # 동일 키워드가 다른 카테고리로 중복되면 skills를 버리고 entries를 우선 유지
-    return _dedupe_keywords_by_priority(
-        items,
-        {"skills": 0, "entries": 1},
-    )
+    chosen: dict[str, TKeyword] = {}
+    for item in items:
+        if not isinstance(item.keyword_text, str):
+            continue
+        normalized = norm_text(item.keyword_text).lower()
+        if not normalized:
+            continue
+        item.keyword_text = normalized
+        if normalized not in chosen:
+            chosen[normalized] = item
+    return list(chosen.values())
 
 
 def dedupe_jd_keywords(items: list[TKeyword]) -> list[TKeyword]:

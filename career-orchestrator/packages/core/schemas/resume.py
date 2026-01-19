@@ -1,22 +1,20 @@
 from __future__ import annotations  # For Version < 3.10
 
-from typing import Optional, Literal
+from typing import Optional
 
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 from .keyword_base import BaseKeyword
 from .utils import dedupe_resume_keywords
 
-ResumeCategory = Literal["skills", "entries"]
-
 
 class ResumeKeyword(BaseKeyword):
     """
     Resume에서 추출한 키워드 1개.
-    category는 skills/entries 중심으로 쓰고, 나머지는 optional.
+    카테고리 구분 없이 키워드와 evidence만 저장.
     """
 
-    category: ResumeCategory = Field(default="skills")
+    pass  # BaseKeyword의 keyword_text, evidence 필드만 사용
 
 
 # class ResumeBullet(BaseModel):
@@ -54,7 +52,7 @@ class ResumeKeyword(BaseKeyword):
 class ResumeProfile(BaseModel):
     """
     ResumeParserTool 출력 + NormalizeKeywordsTool 출력(동일 스키마).
-    점수 계산을 위해 Skills 섹션과 Experience/Project 섹션을 분리해서 보관한다.
+    Resume에서 추출한 기술 키워드들을 저장한다.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -65,7 +63,7 @@ class ResumeProfile(BaseModel):
     )
 
     keywords: list[ResumeKeyword] = Field(
-        default_factory=list, description="Resume에서 추출한 키워드 목록(카테고리 포함)"
+        default_factory=list, description="Resume에서 추출한 기술 키워드 목록"
     )
 
     # 학력(현재 점수에는 미포함; 추후 eligibility/필터에 활용 가능)
@@ -85,7 +83,7 @@ class ResumeProfile(BaseModel):
     # Tool에서 채워도 되고, 안 채워도 됨. (MVP면 tool에서 계산 추천)
     validated_keywords_set: list[ResumeKeyword] = Field(
         default_factory=list,
-        description="Resume에서 추출한 키워드 목록(카테고리 포함)의 정규화/중복 제거 버전(선택, tool이 채움)",
+        description="Resume에서 추출한 키워드의 정규화/중복 제거 버전(선택, tool이 채움)",
     )
 
     # --------- Validators ---------
@@ -93,7 +91,4 @@ class ResumeProfile(BaseModel):
     @field_validator("keywords")
     @classmethod
     def normalize_keywords(cls, v: list[ResumeKeyword]) -> list[ResumeKeyword]:
-        print(f"v: {v}")
-        new = dedupe_resume_keywords(v)
-        print(f"new: {new}")
-        return new
+        return dedupe_resume_keywords(v)
