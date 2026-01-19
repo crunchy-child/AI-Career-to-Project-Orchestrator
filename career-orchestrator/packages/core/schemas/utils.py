@@ -50,6 +50,7 @@ def dedupe_resume_keywords(items: list[TKeyword]) -> list[TKeyword]:
     """
     대소문자 구분 없이 중복 제거.
     소문자로 저장. 먼저 나온 키워드를 유지.
+    카테고리 구분 없이 단순 중복 제거만 수행.
     """
     chosen: dict[str, TKeyword] = {}
     for item in items:

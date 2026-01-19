@@ -2,7 +2,7 @@ from __future__ import annotations  # For Version < 3.10
 
 from typing import Optional
 
-from pydantic import BaseModel, Field, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .keyword_base import BaseKeyword
 from .utils import dedupe_resume_keywords
@@ -11,6 +11,7 @@ from .utils import dedupe_resume_keywords
 class ResumeKeyword(BaseKeyword):
     """
     Resume에서 추출한 키워드 1개.
+<<<<<<< HEAD
     카테고리 구분 없이 키워드와 evidence만 저장.
     """
 
@@ -36,6 +37,13 @@ class ResumeKeyword(BaseKeyword):
 #     start: Optional[str] = Field(default=None, description="시작일(문자열, MVP)")
 #     end: Optional[str] = Field(default=None, description="종료일(문자열, MVP)")
 #     bullets: list[ResumeBullet] = Field(default_factory=list, description="성과/업무 bullet 목록")
+=======
+    카테고리는 "resume"로 고정 (JD 카테고리와 구분용).
+    모든 Resume 키워드는 동등하게 취급.
+    """
+
+    category: str = Field(default="resume", description="FIXED: resume")
+>>>>>>> main
 
 
 # class ResumeEducation(BaseModel):
@@ -51,13 +59,19 @@ class ResumeKeyword(BaseKeyword):
 
 class ResumeProfile(BaseModel):
     """
+<<<<<<< HEAD
     ResumeParserTool 출력 + NormalizeKeywordsTool 출력(동일 스키마).
     Resume에서 추출한 기술 키워드들을 저장한다.
+=======
+    ResumeParserTool 출력.
+    Resume에서 추출한 기술 키워드 목록을 저장.
+    카테고리 구분 없이 모든 키워드를 동등하게 취급.
+>>>>>>> main
     """
 
     model_config = ConfigDict(extra="forbid")
 
-    # 원문(디버깅/추적용). 길면 저장 안 해도 되지만 MVP에서는 있으면 편함.
+    # 원문(디버깅/추적용)
     raw_text: Optional[str] = Field(
         default=None, description="사용자가 붙여넣은 원문 레주메(선택)"
     )
@@ -79,11 +93,14 @@ class ResumeProfile(BaseModel):
     #     description="적용된 alias/표기 변환 맵 (예: {'cicd':'CI/CD'})",
     # )
 
-    # --------- 편의 메서드성 필드: 점수 계산을 쉽게 하기 위한 인덱스(선택) ---------
-    # Tool에서 채워도 되고, 안 채워도 됨. (MVP면 tool에서 계산 추천)
+    # --------- 편의 필드 ---------
     validated_keywords_set: list[ResumeKeyword] = Field(
         default_factory=list,
+<<<<<<< HEAD
         description="Resume에서 추출한 키워드의 정규화/중복 제거 버전(선택, tool이 채움)",
+=======
+        description="정규화/중복 제거된 키워드 목록(선택, normalize_keywords_tool이 채움)",
+>>>>>>> main
     )
 
     # --------- Validators ---------
@@ -91,4 +108,9 @@ class ResumeProfile(BaseModel):
     @field_validator("keywords")
     @classmethod
     def normalize_keywords(cls, v: list[ResumeKeyword]) -> list[ResumeKeyword]:
+<<<<<<< HEAD
         return dedupe_resume_keywords(v)
+=======
+        """중복 제거 및 소문자 정규화."""
+        return dedupe_resume_keywords(v)
+>>>>>>> main
