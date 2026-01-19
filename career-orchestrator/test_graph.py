@@ -142,14 +142,12 @@ def test_resume_parse():
 
     # Summary
     keywords = result.get("keywords", [])
-    skills_count = sum(1 for k in keywords if k.get("category") == "skills")
-    entries_count = sum(1 for k in keywords if k.get("category") == "entries")
+    keywords_with_evidence = sum(1 for k in keywords if k.get("evidence"))
 
     print("\n" + "-" * 60)
     print("Summary:")
     print(f"  Total keywords: {len(keywords)}")
-    print(f"  Skills section: {skills_count}")
-    print(f"  Entries (Experience/Project): {entries_count}")
+    print(f"  Keywords with evidence: {keywords_with_evidence}")
     print("-" * 60)
 
     print("\n✓ Resume parse test completed!")
