@@ -39,16 +39,16 @@ We score JD alignment using **keyword-level weighted coverage**.
 - **Required keywords:** base weight = **0.7**
 - **Preferred keywords:** base weight = **0.3**
 
-### 1.2 Evidence weights (where the keyword appears in the resume)
+### 1.2 Keyword Matching (Simplified)
 
-For each JD keyword, we assign an evidence multiplier based on where it appears:
+Resume keywords are extracted **without category distinction** (no skills/entries separation).
 
-| JD category   |                     Found in Resume Experience/Project |                           Found only in Skills section | Not found |
-| ------------- | -----------------------------------------------------: | -----------------------------------------------------: | --------: |
-| **Required**  | multiplier **1.0** → contribution **0.7 × 1.0 = 0.70** | multiplier **0.6** → contribution **0.7 × 0.6 = 0.42** |   **0.0** |
-| **Preferred** | multiplier **0.8** → contribution **0.3 × 0.8 = 0.24** | multiplier **0.3** → contribution **0.3 × 0.3 = 0.09** |   **0.0** |
+| JD category   | Found in Resume | Not found |
+| ------------- | --------------: | --------: |
+| **Required**  |        **0.70** |   **0.0** |
+| **Preferred** |        **0.30** |   **0.0** |
 
-> Implementation detail: "Experience/Project" means the keyword appears in parsed resume bullets under experience/project sections.
+> Note: All resume keywords are treated equally. The focus is on **whether the keyword exists**, not where it appears.
 
 ### 1.3 Final score (0–100)
 
@@ -69,28 +69,44 @@ The result is returned as `validated_missing_keywords`.
 
 ---
 
-## 2) System Architecture (2 Agents + Tools)
+## 2) System Architecture (2 Agents + Human-in-the-Loop)
 
 ### Why "multi-agent" here?
 
-We use **two role-specialized agents** with a clear handoff:
+We use **two role-specialized agents** with a clear handoff and **user interrupt**:
 
 1. **Resume Analysis Agent** → computes match score + validated missing keywords (temperature=0)
-2. **Project Planner Agent** → generates project blueprints to cover missing keywords (temperature=❤️)
+2. **User Interrupt** → user reviews missing keywords & provides preferences
+3. **Project Planner Agent** → generates project blueprints to cover missing keywords (temperature=❤️)
 
 ### Orchestration
 
-We use **LangGraph** with `StateGraph` and `MessagesState` to orchestrate the workflow.
+We use **LangGraph** with `StateGraph`, `MessagesState`, and **interrupt** to orchestrate the workflow.
 
 ```
-(resume_text, jd_text, preferences)
+(resume_text, jd_text)
    ↓
 Resume Analysis Agent (create_react_agent + tools)
-   ↓  (validated_missing_keywords + score)
-Project Planner Agent 
+   ↓  (match_score + missing_keywords)
+   ↓  (filtered_missing_keywords)
+┌──────────────────────────────────────────────┐
+│  🛑 USER INTERRUPT                           │
+│                                              │
+│  User can:                                   │
+│  1. Review missing_keywords                  │
+│  2. Remove keywords already learned          │
+│  3. Add preferences (stack_pref, constraints)│
+└──────────────────────────────────────────────┘
+Project Planner Agent (Input: GapSummary, preferences)
    ↓
 Final Output (JSON + optional Markdown export)
 ```
+
+### Why User Interrupt?
+
+- **Aggressive keyword extraction**: Resume parsing is designed to be **inclusive** (better to extract too many than miss important ones)
+- **User validation**: User can remove keywords they've already learned or don't want to focus on
+- **Preference input**: User can specify tech stack preferences and constraints at this point
 
 ### ProjectState (LangGraph State)
 
@@ -99,12 +115,15 @@ class ProjectState(MessagesState):
     # Input
     resume_text: str
     jd_text: str
-    # preferences: Optional[Preferences]
 
     # Resume Analysis Agent outputs
     jd_profile: Optional[JDProfile]
     resume_profile: Optional[ResumeProfile]
     gap_summary: Optional[GapSummary]
+
+    # User Interrupt outputs (after user review)
+    filtered_missing_keywords: Optional[list[JDKeyword]]  # User-validated missing keywords
+    preferences: Optional[Preferences]  # { stack_pref, constraints, role }
 
     # Project Planner Agent outputs
     project_output: Optional[ProjectOutput]
@@ -128,8 +147,8 @@ class ProjectState(MessagesState):
 
 | Tool | Status | Description |
 |------|--------|-------------|
-| `jd_parse_tool(jd_text) -> JDProfile` | ✅ Implemented | Extract keywords from JD (excludes education/visa requirements) using LLM (model=gpt-4o, temperature=0) |
-| `resume_parse_tool(resume_text) -> ResumeProfile` | ⬜ TODO | Extract keywords from resume |
+| `jd_parse_tool(jd_text) -> JDProfile` | ✅ Implemented | Extract keywords from JD (excludes education/visa requirements) using LLM |
+| `resume_parse_tool(resume_text) -> ResumeProfile` | ✅ Implemented | Extract keywords from resume (aggressive extraction, no category distinction) |
 | `normalize_keywords_tool(resume_profile, jd_profile) -> ResumeProfile` | ⬜ TODO | Normalize resume keywords based on JD vocabulary |
 | `gap_compute_tool(JDProfile, ResumeProfile) -> GapSummary` | ⬜ TODO | Compute keyword matches and gaps |
 | `score_tool(gap_summary) -> GapSummary` | ⬜ TODO | Calculate weighted match score |
@@ -148,8 +167,8 @@ class ProjectState(MessagesState):
 
 - `resume.py` → `ResumeProfile`
   - `raw_text`
-  - `keywords`
-  - `normalized`, `normalization_notes`, `normalization_map_applied`
+  - `keywords` (category: **"resume"** - no distinction, all keywords treated equally)
+  - `normalized`, `normalization_notes`
   - `validated_keywords_set`
 - `jd.py` → `JDProfile`
   - `raw_text`
@@ -164,6 +183,8 @@ class ProjectState(MessagesState):
 - `project.py` → `ProjectOutput`
   - `project_ideas`
   - `notes`
+
+> **Note**: Resume keywords no longer have skills/entries distinction. All resume keywords are categorized as "resume" and treated equally for matching.
 
 ---
 
@@ -186,7 +207,7 @@ career-orchestrator/
         utils.py
     tools/                 # LangChain tools (@tool decorator)
       jd_parse.py          ✅ Implemented
-      resume_parse.py      ⬜ TODO
+      resume_parse.py      ✅ Implemented
       keyword_normalize.py ⬜ TODO
       gap_compute.py       ⬜ TODO
       score.py             ⬜ TODO
@@ -265,8 +286,8 @@ python test_graph.py
         "keyword_pair": [
           {
             "keyword_text": "python",
-            "category": "skills",
-            "evidence": "Skills section: Python"
+            "category": "resume",
+            "evidence": "Languages: Python, Java, C++, SQL"
           },
           {
             "keyword_text": "python",
@@ -275,7 +296,7 @@ python test_graph.py
             "importance": 5
           }
         ],
-        "match_type": "partial"
+        "match_type": "full"
       }
     ],
     "missing_keywords": [
@@ -295,6 +316,16 @@ python test_graph.py
       }
     ],
     "notes": "필수 키워드는 대부분 충족되었으나 Terraform 경험이 부족합니다."
+  },
+  "UserInterrupt": {
+    "original_missing_keywords": ["terraform", "kubernetes", "airflow"],
+    "user_removed": ["kubernetes"],
+    "filtered_missing_keywords": ["terraform", "airflow"],
+    "preferences": {
+      "stack_pref": ["AWS", "Python"],
+      "constraints": ["1주일", "solo", "비용 0"],
+      "role": "DevOps Engineer"
+    }
   },
   "ProjectOutput": {
     "project_ideas": [
@@ -335,3 +366,6 @@ python test_graph.py
 - This MVP assumes **paste-in JD** (no scraping).
 - Keyword normalization is applied to the resume based on JD vocabulary (aliases/formatting).
 - JD parsing **excludes** education/degree requirements and visa/work authorization requirements.
+- **Resume parsing is aggressive** — extracts as many keywords as possible. User can filter during interrupt.
+- **Resume keywords have no category distinction** — all treated equally (no skills/entries separation).
+- **User interrupt** allows reviewing missing keywords and providing preferences before project generation.
