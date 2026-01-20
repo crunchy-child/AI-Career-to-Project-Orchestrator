@@ -15,7 +15,6 @@ class ResumeKeyword(BaseKeyword):
     모든 Resume 키워드는 동등하게 취급.
     """
 
-    
     category: str = Field(default="resume", description="FIXED: resume")
 
 
