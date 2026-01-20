@@ -70,10 +70,10 @@ def dedupe_jd_keywords(items: list[TKeyword]) -> list[TKeyword]:
     대소문자 구분 없이 중복 제거.
     소문자로 저장.
     """
-    # 동일 키워드 충돌 시 other < preferred < responsibility < required 순으로 버림
+    # 동일 키워드 충돌 시 context < preferred < responsibility < required 순으로 버림
     return _dedupe_keywords_by_priority(
         items,
-        {"other": 0, "preferred": 1, "responsibility": 2, "required": 3},
+        {"context": 0, "preferred": 1, "responsibility": 2, "required": 3},
     )
 
 
