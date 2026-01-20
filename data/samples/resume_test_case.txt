@@ -1,0 +1,26 @@
+PROJECTS
+________________
+
+
+javascript, node.js, react
+
+
+EXPERIENCE
+________________
+
+
+
+
+TECHNICAL SKILLS
+________________
+
+
+Languages                                Python, Java, C++, SQL
+Libraries & Frameworks                        Pandas, NumPy, Matplotlib, Seaborn, Scikit-learn, XGBoost, SHAP, FastAPI, JSON
+LangGraph, Google ADK
+Tools                                        Git, Jupyter Notebook, VS Code, IntelliJ
+Platforms                                Github, macOS, Windows
+Skills                                        Data Analysis, Data Science, Data Engineering, Feature Engineering, 
+Machine Learning,Data Visualization, Statistical Modeling, Hyperparameter Tuning,
+Exploratory Data Analysis, Backend, Leadership, Collaboration, Teamwork,
+Problem Solving, Microservices, Multi Agent
