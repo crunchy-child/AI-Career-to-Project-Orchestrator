@@ -5,7 +5,6 @@ Test script for Resume Analysis Agent with JD and Resume parsing.
 The agent autonomously decides which tools to use based on the input.
 
 Usage:
-    cd career-orchestrator
     python test_graph.py              # Run full agent test
     python test_graph.py --resume     # Test resume_parse_tool only
     python test_graph.py --jd         # Test jd_parse_tool only

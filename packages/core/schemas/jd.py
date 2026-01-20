@@ -8,7 +8,7 @@ from .keyword_base import BaseKeyword
 from .utils import dedupe_jd_keywords
 
 
-JDCategory = Literal["required", "preferred", "responsibility", "other"]
+JDCategory = Literal["required", "preferred", "responsibility", "context"]
 
 
 class JDKeyword(BaseKeyword):

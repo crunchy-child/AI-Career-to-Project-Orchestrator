@@ -2,7 +2,7 @@
 name = "career-orchestrator"
 version = "0.1.0"
 description = "AI Career-to-Project Orchestrator - JD matching score + project planning"
-readme = "../README.md"
+readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [
