@@ -1,11 +1,12 @@
 # packages/core/schemas/gap.py
 from __future__ import annotations
 
-from typing import Optional, Literal
-from pydantic import BaseModel, Field, ConfigDict
+from typing import Literal, Optional
 
-from .resume import ResumeKeyword
+from pydantic import BaseModel, ConfigDict, Field
+
 from .jd import JDKeyword
+from .resume import ResumeKeyword
 
 JDCategory = Literal["required", "preferred"]
 

@@ -66,7 +66,7 @@ Categorize each keyword as:
 - vague concepts are too broad - extract specific tools instead
 - Example: machine learning, data science, web development
 
-❌ OEPRATING SYSTEMS:
+❌ OPERATING SYSTEMS:
 - windows, macos, linux, etc.
 
 ## Output Format
@@ -75,18 +75,39 @@ For each keyword:
 - **keyword_text**: lowercase, normalized (e.g., "python", "c++", "scikit-learn")
 - **category**: required/preferred/responsibility/context
 - **evidence**: The exact sentence/phrase from JD where it appears
-- **importance**: (Optional, 1-5 scale) For required/preferred keywords only
+- **gap_instruction**: (Optional) Instruction for gap matching. Only add if keyword is part of an OR group.
 
-### Example
+## Handling OR Keywords
+
+**CRITICAL**: When keywords are connected with "OR" (e.g., "Python, C++, Java, or related programming language", "React/Vue/Angular"):
+1. Extract EACH keyword separately as individual entries
+2. For all keywords in the OR group, add the same `gap_instruction`:
+   - Format: "Match group: [keyword1, keyword2, ...] - if any exists in resume, this keyword is considered matched"
+   - Include ALL keywords from the OR group in the instruction
+
+**Rule**: Extract individually, but link them via gap_instruction so matching logic treats them as an OR condition.
+
+### Example 1: Simple Keywords
 
 JD: "Required: 3+ years Python, FastAPI. Preferred: Docker, Kubernetes. Responsibilities: Build ML models using XGBoost."
 
 Extract:
-- {"keyword_text": "python", "category": "required", "evidence": "Required: 3+ years Python", "importance": 5}
-- {"keyword_text": "fastapi", "category": "required", "evidence": "Required: 3+ years Python, FastAPI", "importance": 5}
-- {"keyword_text": "docker", "category": "preferred", "evidence": "Preferred: Docker, Kubernetes", "importance": 3}
-- {"keyword_text": "kubernetes", "category": "preferred", "evidence": "Preferred: Docker, Kubernetes", "importance": 3}
-- {"keyword_text": "xgboost", "category": "responsibility", "evidence": "Build ML models using XGBoost"}
+- {"keyword_text": "python", "category": "required", "evidence": "Required: 3+ years Python", "gap_instruction": null}
+- {"keyword_text": "fastapi", "category": "required", "evidence": "Required: 3+ years Python, FastAPI", "gap_instruction": null}
+- {"keyword_text": "docker", "category": "preferred", "evidence": "Preferred: Docker, Kubernetes", "gap_instruction": null}
+- {"keyword_text": "kubernetes", "category": "preferred", "evidence": "Preferred: Docker, Kubernetes", "gap_instruction": null}
+- {"keyword_text": "xgboost", "category": "responsibility", "evidence": "Build ML models using XGBoost", "gap_instruction": null}
+
+### Example 2: OR Keywords
+
+JD: "Required: Python OR Java, React/Vue/Angular preferred."
+
+Extract:
+- {"keyword_text": "python", "category": "required", "evidence": "Required: Python OR Java", "gap_instruction": "Match group: [python, java] - if any exists in resume, this keyword is considered matched"}
+- {"keyword_text": "java", "category": "required", "evidence": "Required: Python OR Java", "gap_instruction": "Match group: [python, java] - if any exists in resume, this keyword is considered matched"}
+- {"keyword_text": "react", "category": "preferred", "evidence": "React/Vue/Angular preferred", "gap_instruction": "Match group: [react, vue, angular] - if any exists in resume, this keyword is considered matched"}
+- {"keyword_text": "vue", "category": "preferred", "evidence": "React/Vue/Angular preferred", "gap_instruction": "Match group: [react, vue, angular] - if any exists in resume, this keyword is considered matched"}
+- {"keyword_text": "angular", "category": "preferred", "evidence": "React/Vue/Angular preferred", "gap_instruction": "Match group: [react, vue, angular] - if any exists in resume, this keyword is considered matched"}
 
 ## Final Reminder
 
