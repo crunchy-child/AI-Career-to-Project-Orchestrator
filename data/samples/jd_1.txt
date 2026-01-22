@@ -1,7 +1,9 @@
 About the job
 Meta is committed to advancing the field of artificial intelligence by making fundamental advances in technologies to help interact with and understand our world. We are seeking individuals passionate in areas such as deep learning, computer vision, optimization, natural language processing, machine learning, reinforcement learning, computational statistics, applied mathematics and security/privacy. Our interns have an opportunity to make core algorithmic advances and apply their ideas at an unprecedented scale.Our internships are twelve (12) to sixteen (16), or twenty-four (24) weeks long and we have various start dates throughout the year.
 
-Research Scientist Intern, AI Alignment Responsibilities:
+Research Scientist Intern
+
+AI Alignment Responsibilities:
 
 Develop novel state-of-the-art algorithms and corresponding systems, leveraging various deep learning techniques
 Analyze and improve various aspects of the corresponding algorithms and systems, including efficiency, scalability, stability, fairness, security, and privacy

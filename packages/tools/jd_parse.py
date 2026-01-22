@@ -121,6 +121,13 @@ def jd_parse_tool(jd_text: dict) -> dict:
 
     Args:
         jd_text: The dictionary containing job description raw texts by section, in the shape of dictionary.
+        Example:
+        {
+            "required": "Experience with Python, C++, Java. Experience with PyTorch or Tensorflow...",
+            "preferred": "Experience building large-scale machine learning systems...",
+            "responsibilities": "Develop novel state-of-the-art algorithms and corresponding systems...",
+            "context": "Meta builds technologies that help people connect..."
+        }
 
     Returns:
         JDProfile as a dictionary containing role_title, company, and extracted keywords
