@@ -1,371 +1,381 @@
 # AI Career-to-Project Orchestrator
 
-1. computes a **JD matching score (0–100)** and **validated missing keywords**, then
-2. generates **2 portfolio project plans** (architecture + 7-day sprint plan) that help you _prove_ those missing keywords for your target role.
+Resume와 Job Description(JD)을 분석하여 **JD 매칭 점수**와 **부족한 키워드**를 보여주고, 이를 기반으로 **포트폴리오 프로젝트 2안**을 생성해주는 AI 기반 커리어 도우미입니다.
 
 ---
 
-## 0) Goals & Success Criteria
+## Overview
 
-### Goals
+이 프로젝트는 구직자가 원하는 포지션의 JD와 자신의 Resume를 비교하여:
 
-- Input:
-  - `resume_text`, `jd_text` (paste)
-  - **`preferences`** (optional): `{ stack_pref, constraints, role }`
-- Output:
-  - **Match score (0–100)** with rationale
-  - **Validated missing keywords**
-  - **2 project proposals**, each with:
-    - reasoning
-    - architecture (Mermaid optional)
-    - **7-day plan (D1–D7)**
-
-### Success Criteria (demo-ready)
-
-- End-to-end result in **10–30 seconds**
-- Always returns:
-  - match score + missing keywords
-  - exactly **2** project plans
-- Reproducible run with **Docker for API** (web runs locally)
+1. **매칭 점수 (0-100)** 와 **부족한 키워드**를 분석하고
+2. 부족한 키워드를 채울 수 있는 **포트폴리오 프로젝트 2안**을 제안합니다
 
 ---
 
-## 1) Matching Score Algorithm
+## User Flow
 
-We score JD alignment using **keyword-level weighted coverage**.
-
-### 1.1 Base weights (JD category)
-
-- **Required keywords:** base weight = **0.7**
-- **Preferred keywords:** base weight = **0.3**
-
-### 1.2 Keyword Matching (Simplified)
-
-Resume keywords are extracted **without category distinction** (no skills/entries separation).
-
-| JD category   | Found in Resume | Not found |
-| ------------- | --------------: | --------: |
-| **Required**  |        **0.70** |   **0.0** |
-| **Preferred** |        **0.30** |   **0.0** |
-
-> Note: All resume keywords are treated equally. The focus is on **whether the keyword exists**, not where it appears.
-
-### 1.3 Final score (0–100)
-
-Let `w_i` be the base weight (0.7 or 0.3) and `m_i` be the evidence multiplier for keyword `i`.
-
-- **Weighted covered sum** = `Σ (w_i × m_i)`
-- **Max possible sum** = `Σ w_i`
-- **Match score** = `100 × (Weighted covered sum / Max possible sum)`
-
-### 1.4 Validated missing keywords
-
-We compute initial missing keywords via set difference, then validate by:
-
-- removing duplicates/alias collisions (normalizing ResumeKeyword based on JDKeyWord)
-- ensuring the keyword truly exists in JD text/parsed JD keywords
-
-The result is returned as `validated_missing_keywords`.
-
----
-
-## 2) System Architecture (2 Agents + Human-in-the-Loop)
-
-### Why "multi-agent" here?
-
-We use **two role-specialized agents** with a clear handoff and **user interrupt**:
-
-1. **Resume Analysis Agent** → computes match score + validated missing keywords (temperature=0)
-2. **User Interrupt** → user reviews missing keywords & provides preferences
-3. **Project Planner Agent** → generates project blueprints to cover missing keywords (temperature=❤️)
-
-### Orchestration
-
-We use **LangGraph** with `StateGraph`, `MessagesState`, and **interrupt** to orchestrate the workflow.
+### Step 1: 입력 (현재 구현됨)
 
 ```
-(resume_text, jd_text)
-   ↓
-Resume Analysis Agent (create_react_agent + tools)
-   ↓  (match_score + missing_keywords)
-   ↓  (filtered_missing_keywords)
-┌──────────────────────────────────────────────┐
-│  🛑 USER INTERRUPT                           │
-│                                              │
-│  User can:                                   │
-│  1. Review missing_keywords                  │
-│  2. Remove keywords already learned          │
-│  3. Add preferences (stack_pref, constraints)│
-└──────────────────────────────────────────────┘
-Project Planner Agent (Input: GapSummary, preferences)
-   ↓
-Final Output (JSON + optional Markdown export)
+┌─────────────────────────────────────────────────────────────┐
+│                    Frontend (React)                          │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  📄 Resume 텍스트 붙여넣기                                    │
+│  ┌────────────────────────────────────────────────────────┐ │
+│  │ (Resume 전체 텍스트)                                     │ │
+│  └────────────────────────────────────────────────────────┘ │
+│                                                              │
+│  📋 JD 섹션별 입력                                            │
+│  ┌────────────────────────────────────────────────────────┐ │
+│  │ [Required ▼]     (필수 요구사항 텍스트)                   │ │
+│  │ [Preferred ▼]    (우대사항 텍스트)                        │ │
+│  │ [Responsibility ▼] (업무 내용 텍스트)                     │ │
+│  │ [Context ▼]      (About this Job/Company 텍스트)         │ │
+│  └────────────────────────────────────────────────────────┘ │
+│                                                              │
+│  [+ Add JD Section]                                          │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐ │
+│  │                    [ Analyze ]                          │ │
+│  └────────────────────────────────────────────────────────┘ │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Why User Interrupt?
+**JD 카테고리 설명:**
+- **Required**: 필수 요구사항 (가중치 높음)
+- **Preferred**: 우대사항 (가중치 낮음)
+- **Responsibility**: 담당 업무/역할
+- **Context**: About this Job, About this Company 등 배경 정보
 
-- **Aggressive keyword extraction**: Resume parsing is designed to be **inclusive** (better to extract too many than miss important ones)
-- **User validation**: User can remove keywords they've already learned or don't want to focus on
-- **Preference input**: User can specify tech stack preferences and constraints at this point
-
-### ProjectState (LangGraph State)
-
-```python
-class ProjectState(MessagesState):
-    # Input
-    resume_text: str
-    jd_text: str
-
-    # Resume Analysis Agent outputs
-    jd_profile: Optional[JDProfile]
-    resume_profile: Optional[ResumeProfile]
-    gap_summary: Optional[GapSummary]
-
-    # User Interrupt outputs (after user review)
-    filtered_missing_keywords: Optional[list[JDKeyword]]  # User-validated missing keywords
-    preferences: Optional[Preferences]  # { stack_pref, constraints, role }
-
-    # Project Planner Agent outputs
-    project_output: Optional[ProjectOutput]
-
-    # Meta
-    error: Optional[list[str]]
-    current_step: Optional[str]
-```
-
-### Agent Implementation
-
-| Component | Implementation | Description |
-|-----------|---------------|-------------|
-| **Resume Agent** | `create_react_agent("openai:gpt-4o", tools=[...],)` | ReAct agent with tool calling |
-| **JD Parse Tool** | `@tool` + `init_chat_model` + `with_structured_output` | LLM-based structured extraction |
-| **Graph** | `StateGraph(ProjectState)` + `START` → `END` | LangGraph workflow |
-
-### Agent tools (functions)
-
-**Resume Analysis Agent tools**
-
-| Tool | Status | Description |
-|------|--------|-------------|
-| `jd_parse_tool(jd_text) -> JDProfile` | ✅ Implemented | Extract keywords from JD (excludes education/visa requirements) using LLM |
-| `resume_parse_tool(resume_text) -> ResumeProfile` | ✅ Implemented | Extract keywords from resume (aggressive extraction, no category distinction) |
-| `normalize_keywords_tool(resume_profile, jd_profile) -> ResumeProfile` | ⬜ TODO | Normalize resume keywords based on JD vocabulary |
-| `gap_compute_tool(JDProfile, ResumeProfile) -> GapSummary` | ⬜ TODO | Compute keyword matches and gaps |
-| `score_tool(gap_summary) -> GapSummary` | ⬜ TODO | Calculate weighted match score |
-
-**Project Planner Agent tools**
-
-| Tool | Status | Description |
-|------|--------|-------------|
-| `project_ideation_tool(GapSummary) -> list[ProjectIdea]` | ⬜ TODO | Generate project ideas |
-| `architecture_tool(list[ProjectIdea]) -> list[ArchitectureSpec]` | ⬜ TODO | Design architecture |
-| `project_plan_tool(...) -> list[ProjectPlan]` | ⬜ TODO | Create 7-day sprint plans |
-
----
-
-## 3) Data Schemas (v2)
-
-- `resume.py` → `ResumeProfile`
-  - `raw_text`
-  - `keywords` (category: **"resume"** - no distinction, all keywords treated equally)
-  - `normalized`, `normalization_notes`
-  - `validated_keywords_set`
-- `jd.py` → `JDProfile`
-  - `raw_text`
-  - `keywords` (category: required/preferred/responsibility/other)
-  - `role_title`
-  - `company`
-- `gap.py` → `GapSummary`
-  - `match_score`
-  - `keyword_matches`
-  - `missing_keywords`, `validated_missing_keywords`
-  - `notes`
-- `project.py` → `ProjectOutput`
-  - `project_ideas`
-  - `notes`
-
-> **Note**: Resume keywords no longer have skills/entries distinction. All resume keywords are categorized as "resume" and treated equally for matching.
-
----
-
-## 4) Repository Structure
+### Step 2: Resume Agent 분석 (현재 구현됨)
 
 ```
-career-orchestrator/
-  apps/
-    web/                   # Next.js UI (runs locally)
-    api/                   # FastAPI (Dockerized)
-  packages/
-    core/
-      schemas/             
-        __init__.py
-        resume.py
-        jd.py
-        gap.py
-        project.py
-        keyword_base.py
-        utils.py
-    tools/                 # LangChain tools (@tool decorator)
-      jd_parse.py          ✅ Implemented
-      resume_parse.py      ✅ Implemented
-      keyword_normalize.py ⬜ TODO
-      gap_compute.py       ⬜ TODO
-      score.py             ⬜ TODO
-      project_ideation.py  ⬜ TODO
-      architecture.py      ⬜ TODO
-      sprint_plan.py       ⬜ TODO
-    agents/                # LangGraph agents (create_react_agent)
-      resume_agent.py      ✅ Implemented
-      project_agent.py     ⬜ TODO
-    graph/                 # LangGraph workflow (StateGraph)
-      main.py              ✅ Implemented
-  data/
-    samples/               # sample resume/jd pairs
-  docs/
-  test_graph.py            ✅ Test script
-  pyproject.toml
-  .env.example
-  docker-compose.yml       # API-only compose
+┌─────────────────────────────────────────────────────────────┐
+│                   Resume Analysis Agent                      │
+│                    (temperature = 0.1)                       │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  📄 resume_parse_tool                                        │
+│  └─ Resume 텍스트 → 기술 키워드 추출                          │
+│                                                              │
+│  📋 jd_parse_tool                                            │
+│  └─ JD 섹션 (dict) → 카테고리별 키워드 추출                   │
+│                                                              │
+│  ⚙️ (TODO) normalize + gap_compute + score                   │
+│  └─ 키워드 정규화 → Gap 분석 → 매칭 점수 계산                  │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      분석 결과                               │
+├─────────────────────────────────────────────────────────────┤
+│  • Match Score: 78%                                          │
+│  • Missing Keywords: terraform, kubernetes, airflow          │
+│  • Gap Summary: 필수 키워드는 대부분 충족, IaC 경험 부족       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Step 3: User Interrupt (TODO)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│               🛑 USER INTERRUPT                              │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Missing Keywords 검토:                                      │
+│  ☑ terraform                                                 │
+│  ☐ kubernetes  ← 유저가 이미 알고 있어서 체크 해제            │
+│  ☑ airflow                                                   │
+│                                                              │
+│  Preferences 추가:                                           │
+│  • Stack: AWS, Python                                        │
+│  • Constraints: 1주일, 혼자, 비용 0                           │
+│  • Role: DevOps Engineer                                     │
+│                                                              │
+│  [ Continue to Project Generation ]                          │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Step 4: Project Agent (TODO)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   Project Planner Agent                      │
+│                    (temperature = 0.8)                       │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  🎯 project_ideation_tool                                    │
+│  └─ Missing keywords + Preferences → 프로젝트 아이디어 2안    │
+│                                                              │
+│  🏗️ architecture_tool                                        │
+│  └─ 각 프로젝트의 아키텍처 설계                               │
+│                                                              │
+│  📅 sprint_plan_tool                                         │
+│  └─ 7일 스프린트 계획 생성                                    │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    프로젝트 2안 제안                          │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  📦 프로젝트 1: Terraform 기반 인프라 자동화                   │
+│  ├─ 설명: AWS 인프라를 Terraform으로 프로비저닝               │
+│  ├─ 커버 키워드: terraform, ci/cd                            │
+│  ├─ 기술 스택: Terraform, GitHub Actions, AWS                │
+│  └─ 7일 계획: D1 초기화 → D2 리소스 정의 → ... → D7 문서화    │
+│                                                              │
+│  📦 프로젝트 2: Airflow 데이터 파이프라인                      │
+│  ├─ 설명: ETL 워크플로우 자동화                               │
+│  ├─ 커버 키워드: airflow, python                             │
+│  ├─ 기술 스택: Airflow, Docker, PostgreSQL                   │
+│  └─ 7일 계획: D1 환경 구성 → D2 DAG 작성 → ... → D7 배포      │
+│                                                              │
+│  [ Select Project 1 ] [ Select Project 2 ]                   │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 5) Running Locally
+## Why Two Agents?
 
-### 5.1 Quick Test (Minimal Cycle)
+에이전트를 두 개로 나눈 이유는 **성격이 다르기 때문**입니다.
 
-```bash
-# 1. Move to project directory
-cd career-orchestrator
+| Agent | 목적 | Temperature | 특성 |
+|-------|------|-------------|------|
+| **Resume Agent** | 이력서/JD 분석 | 0.1 (낮음) | **솔직하고 정확**해야 함. 창의성 배제. |
+| **Project Agent** | 프로젝트 생성 | 0.8 (높음) | **창의적**이어야 함. 다양한 아이디어 필요. |
 
-# 2. Install dependencies
-pip install -e .
-
-# 3. Set OpenAI API key (if not already set)
-export OPENAI_API_KEY=sk-...
-
-# 4. Run test
-python test_graph.py
-```
-
-### 5.2 API (Docker)
-
-- Build & run:
-  - `docker compose up --build`
-- API should expose:
-  - `POST /run` (or `/analyze`) – main entry
-  - `GET /health` – health check
-
-### 5.3 Web (Local)
-
-- Run Next.js locally and point it to the API base URL.
+- **Resume Agent**: 키워드 추출과 Gap 분석은 정확해야 합니다. "있는 것을 없다"거나 "없는 것을 있다"고 하면 안 됩니다.
+- **Project Agent**: 부족한 키워드를 채울 프로젝트를 제안할 때는 창의성이 필요합니다. 독특하고 효과적인 프로젝트 아이디어를 생성해야 합니다.
 
 ---
 
-## 6) Tech Stack
+## Matching Score Algorithm
+
+JD와 Resume의 키워드 매칭을 통해 점수를 계산합니다.
+
+### Category Weights
+
+| JD Category | Weight |
+|-------------|--------|
+| Required | 0.7 |
+| Preferred | 0.3 |
+
+### Score Calculation
+
+```
+Match Score = 100 × (Weighted Matched Sum / Total Weight)
+
+Weighted Matched Sum = (Required 매칭 비율 × 0.7) + (Preferred 매칭 비율 × 0.3)
+```
+
+예시:
+- Required 키워드 10개 중 7개 매칭 → 7/10 × 0.7 = 0.49
+- Preferred 키워드 5개 중 3개 매칭 → 3/5 × 0.3 = 0.18
+- **Match Score = (0.49 + 0.18) × 100 = 67%**
+
+---
+
+## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
-| **LLM** | OpenAI GPT-4o via `init_chat_model("gpt-4o")` |
+| **LLM** | OpenAI GPT-4o-mini |
 | **Agent Framework** | LangGraph `create_react_agent` |
 | **State Management** | LangGraph `StateGraph` + `MessagesState` |
 | **Tool Definition** | LangChain `@tool` + `with_structured_output` |
-| **API** | FastAPI |
+| **API** | FastAPI (Dockerized) |
+| **Frontend** | React + TypeScript + Vite |
+| **UI Components** | shadcn/ui |
 | **Validation** | Pydantic v2 |
 
 ---
 
-## 7) Output Example (short)
+## Project Structure
 
+```
+AI-Career-to-Project-Orchestrator/
+├── apps/
+│   ├── api/                    # FastAPI Backend (Dockerized)
+│   │   ├── main.py             # API 엔드포인트
+│   │   └── Dockerfile
+│   └── web/                    # React Frontend
+│       └── src/
+│           ├── components/     # UI 컴포넌트
+│           ├── lib/            # API 호출 함수
+│           └── types/          # TypeScript 타입
+│
+├── packages/
+│   ├── core/
+│   │   └── schemas/            # Pydantic 스키마
+│   │       ├── resume.py       # ResumeProfile, ResumeKeyword
+│   │       ├── jd.py           # JDProfile, JDKeyword
+│   │       ├── gap.py          # GapSummary
+│   │       └── project.py      # ProjectOutput
+│   │
+│   ├── tools/                  # LangChain Tools (@tool)
+│   │   ├── resume_parse.py     ✅ Resume 키워드 추출
+│   │   ├── jd_parse.py         ✅ JD 키워드 추출
+│   │   ├── keyword_normalize.py ⬜ 키워드 정규화
+│   │   ├── gap_compute.py      ⬜ Gap 분석
+│   │   ├── score.py            ⬜ 점수 계산
+│   │   ├── project_ideation.py ⬜ 프로젝트 아이디어 생성
+│   │   ├── architecture.py     ⬜ 아키텍처 설계
+│   │   └── sprint_plan.py      ⬜ 스프린트 계획
+│   │
+│   ├── agents/                 # LangGraph Agents
+│   │   ├── resume_agent.py     ✅ Resume/JD 분석 에이전트
+│   │   └── project_agent.py    ⬜ 프로젝트 생성 에이전트
+│   │
+│   └── graph/                  # LangGraph Workflow
+│       └── main.py             # StateGraph 정의
+│
+├── data/
+│   └── samples/                # 샘플 Resume/JD 파일
+│
+├── docker-compose.yml          # API Docker 설정
+└── pyproject.toml              # Python 의존성
+```
+
+### Implementation Status
+
+| Component | Status | Description |
+|-----------|--------|-------------|
+| `jd_parse_tool` | ✅ Done | JD 텍스트에서 카테고리별 키워드 추출 |
+| `resume_parse_tool` | ✅ Done | Resume 텍스트에서 기술 키워드 추출 |
+| `resume_agent` | ✅ Done | JD/Resume 파싱 에이전트 |
+| `normalize_keywords_tool` | ⬜ TODO | 키워드 정규화 (alias 처리) |
+| `gap_compute_tool` | ⬜ TODO | Gap 분석 (매칭/미매칭 분류) |
+| `score_tool` | ⬜ TODO | 가중치 기반 점수 계산 |
+| `project_ideation_tool` | ⬜ TODO | 프로젝트 아이디어 생성 |
+| `architecture_tool` | ⬜ TODO | 프로젝트 아키텍처 설계 |
+| `sprint_plan_tool` | ⬜ TODO | 7일 스프린트 계획 |
+| `project_agent` | ⬜ TODO | 프로젝트 생성 에이전트 |
+| User Interrupt | ⬜ TODO | 사용자 키워드 검토 UI |
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.10+
+- Node.js 18+
+- Docker & Docker Compose
+- OpenAI API Key
+
+### 1. Clone & Install
+
+```bash
+git clone https://github.com/your-repo/AI-Career-to-Project-Orchestrator.git
+cd AI-Career-to-Project-Orchestrator
+
+# Python 의존성 설치
+pip install -e .
+```
+
+### 2. Environment Setup
+
+```bash
+# .env 파일 생성 또는 환경변수 설정
+export OPENAI_API_KEY=sk-your-api-key
+```
+
+### 3. Run Backend (Docker)
+
+```bash
+docker compose up --build
+```
+
+Backend가 `http://localhost:8000`에서 실행됩니다.
+
+**Health Check:**
+```bash
+curl http://localhost:8000/health
+# {"status": "healthy", "version": "0.1.0"}
+```
+
+### 4. Run Frontend (Local)
+
+```bash
+cd apps/web
+npm install
+npm run dev
+```
+
+Frontend가 `http://localhost:5173`에서 실행됩니다.
+
+---
+
+## API Endpoints
+
+### POST /analyze
+
+Resume와 JD를 분석하여 매칭 점수와 부족한 키워드를 반환합니다.
+
+**Request:**
 ```json
 {
-  "GapSummary": {
-    "match_score": 78,
-    "keyword_matches": [
-      {
-        "keyword_pair": [
-          {
-            "keyword_text": "python",
-            "category": "resume",
-            "evidence": "Languages: Python, Java, C++, SQL"
-          },
-          {
-            "keyword_text": "python",
-            "category": "required",
-            "evidence": "JD: Required Python experience",
-            "importance": 5
-          }
-        ],
-        "match_type": "full"
-      }
-    ],
+  "resume_text": "Your resume text here...",
+  "jd_inputs": [
+    { "category": "required", "text": "3+ years Python, FastAPI..." },
+    { "category": "preferred", "text": "Docker, Kubernetes experience..." },
+    { "category": "responsibility", "text": "Build ML pipelines..." },
+    { "category": "context", "text": "About this company..." }
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "gap_summary": {
+    "match_score": 78.5,
+    "keyword_matches": [...],
     "missing_keywords": [
-      {
-        "keyword_text": "terraform",
-        "category": "required",
-        "evidence": "JD: Required Infrastructure as Code (Terraform)",
-        "importance": 5
-      }
+      { "keyword_text": "terraform", "category": "required", "evidence": "..." }
     ],
-    "validated_missing_keywords": [
-      {
-        "keyword_text": "terraform",
-        "category": "required",
-        "evidence": "JD: Required Infrastructure as Code (Terraform)",
-        "importance": 5
-      }
-    ],
-    "notes": "필수 키워드는 대부분 충족되었으나 Terraform 경험이 부족합니다."
-  },
-  "UserInterrupt": {
-    "original_missing_keywords": ["terraform", "kubernetes", "airflow"],
-    "user_removed": ["kubernetes"],
-    "filtered_missing_keywords": ["terraform", "airflow"],
-    "preferences": {
-      "stack_pref": ["AWS", "Python"],
-      "constraints": ["1주일", "solo", "비용 0"],
-      "role": "DevOps Engineer"
-    }
-  },
-  "ProjectOutput": {
-    "project_ideas": [
-      {
-        "idea": {
-          "title": "Terraform 기반 인프라 자동화",
-          "one_liner": "Terraform으로 AWS 인프라를 프로비저닝하고 자동 배포 파이프라인을 구성",
-          "reasoning": "JD의 핵심 결손 키워드인 Terraform을 실증할 수 있음",
-          "covers_keywords": ["terraform", "ci/cd"],
-          "constraints": ["1주일", "1인", "비용 0"],
-          "tech_stack": ["Terraform", "GitHub Actions", "AWS"]
-        },
-        "architecture": {
-          "summary": "Terraform으로 인프라 구성 후 CI/CD로 배포 자동화",
-          "components": ["Terraform modules", "GitHub Actions", "K8s cluster"],
-          "data_flow": "Push -> CI build/test -> Terraform apply -> K8s deploy"
-        },
-        "weekly_plan": [
-          { "day": 1, "goals": ["Terraform 프로젝트 초기화"], "tasks": ["Provider 설정"] },
-          { "day": 2, "goals": ["K8s 클러스터 구성"], "tasks": ["클러스터 리소스 정의"] },
-          { "day": 3, "goals": ["CI/CD 파이프라인 구축"], "tasks": ["workflow 작성"] },
-          { "day": 4, "goals": ["샘플 서비스 배포"], "tasks": ["K8s manifest 작성"] },
-          { "day": 5, "goals": ["환경 분리"], "tasks": ["tfvars 분리"] },
-          { "day": 6, "goals": ["모니터링 추가"], "tasks": ["로그/모니터링 적용"] },
-          { "day": 7, "goals": ["문서화/데모 준비"], "tasks": ["README 작성"] }
-        ]
-      }
-    ],
-    "notes": "프로젝트 1은 IaC/배포 중심."
+    "validated_missing_keywords": [...],
+    "notes": "Found 25 resume keywords. Missing 5 JD keywords."
   }
 }
 ```
 
+### GET /health
+
+Health check endpoint.
+
 ---
 
-## 8) Notes
+## Future Roadmap
 
-- This MVP assumes **paste-in JD** (no scraping).
-- Keyword normalization is applied to the resume based on JD vocabulary (aliases/formatting).
-- JD parsing **excludes** education/degree requirements and visa/work authorization requirements.
-- **Resume parsing is aggressive** — extracts as many keywords as possible. User can filter during interrupt.
-- **Resume keywords have no category distinction** — all treated equally (no skills/entries separation).
-- **User interrupt** allows reviewing missing keywords and providing preferences before project generation.
+1. **Keyword Normalization**: alias 처리 (k8s → kubernetes, postgres → postgresql)
+2. **User Interrupt UI**: 사용자가 missing keywords를 검토하고 수정할 수 있는 인터페이스
+3. **Project Agent**: 창의적인 프로젝트 2안 생성
+4. **Architecture & Sprint Plan**: 선택한 프로젝트의 상세 설계 및 7일 계획
+5. **Web Deployment**: Docker 기반 배포
+
+---
+
+## Why Docker for API?
+
+API를 Docker로 감싼 이유:
+
+1. **배포 일관성**: 어떤 환경에서든 동일하게 실행
+2. **의존성 격리**: Python 패키지 충돌 방지
+3. **스케일링**: 컨테이너 기반 배포로 확장 용이
+4. **웹 배포 준비**: AWS ECS, GCP Cloud Run 등으로 바로 배포 가능
+
+---
+
+## License
+
+MIT
